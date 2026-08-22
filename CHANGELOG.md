@@ -66,6 +66,12 @@ All notable changes to this project are documented here, following
 
 ### Fixed
 
+- `max_gamma_ratio` bounded $\gamma$ at the coupling's *reference* scale rather than
+  across the separation window. With a running coupling the correlator is built from
+  $\bar\lambda(1/r)$, so $\gamma$ varies with $r$ -- at $\epsilon = 0.35$ by about a factor
+  of six -- and samples were passing the cap at $|\gamma|/\Delta = 0.0479$ while carrying
+  $0.2146$ in their targets, four times over. The bound is now evaluated at the window
+  edges, which the monotonicity of the flow makes sufficient.
 - Restored the "Interactive frontend" README section, lost to a splice that replaced
   everything between two headings when a third had been inserted between them.
 

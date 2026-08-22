@@ -22,7 +22,7 @@ from qft_operator.physics.correlators import (
     first_order_log_correlator,
     resummed_log_correlator,
 )
-from qft_operator.physics.rg import BetaFunction, RGConfig
+from qft_operator.physics.rg import BetaFunction, RGConfig, scale_anomalous_dimension
 
 __all__ = ["AdS2CorrelatorDataset", "DatasetStatistics"]
 
@@ -174,6 +174,39 @@ class AdS2CorrelatorDataset(Dataset[dict[str, Tensor]]):
             )
         return lo - 0.5, hi + 0.5
 
+    def _peak_gamma(self, gamma_reference: float, coupling: float, log_m: float) -> float:
+        """Largest $|\\gamma|$ the sample will actually carry across the separation window.
+
+        The cap has to bound the anomalous dimension the *targets* use, not the one the
+        coupling happens to be quoted at. Those differ whenever the coupling runs: the
+        correlator is built from $\\bar\\lambda(1/r)$, so $\\gamma$ varies across the window,
+        and at $\\epsilon = 0.35$ it varies by a factor of six. Checking only the reference
+        value let samples through at $|\\gamma|/\\Delta = 0.21$ -- four times over the cap --
+        in exactly the configuration the cap exists to protect.
+
+        The flow is monotone in $\\log\\mu$, so the two window edges bound the interior and
+        no scan is needed.
+
+        Args:
+            gamma_reference: $\\gamma$ at the coupling's quoted scale.
+            coupling: $\\lambda(M)$.
+            log_m: $\\log M$.
+
+        Returns:
+            $\\max_r |\\gamma(r)|$ over the configured separation window.
+        """
+        if self.rg_config.is_marginal or gamma_reference == 0.0:
+            return abs(gamma_reference)
+        edges = torch.tensor(self.data.log_r_range, dtype=torch.float64)
+        running = scale_anomalous_dimension(
+            torch.full_like(edges, gamma_reference),
+            torch.full_like(edges, coupling),
+            torch.full_like(edges, log_m),
+            edges,
+            self.beta,
+        )
+        return float(running.abs().max())
+
     def _generate(self, generator: Generator, feature_scale: float | None) -> None:
         """Draw every sample and stack the results into contiguous tensors."""
         cfg, phys = self.data, self.physics
@@ -210,7 +243,7 @@ class AdS2CorrelatorDataset(Dataset[dict[str, Tensor]]):
 
                 moment = potential.gaussian_second_moment(phys.sigma_sq)
                 gamma = 0.5 * phys.beta1 * phys.beta2 * moment * self._log_coefficient
-                if ceiling is None or abs(gamma) <= ceiling:
+                if ceiling is None or self._peak_gamma(gamma, potential.coupling, log_m) <= ceiling:
                     break
                 rejected += 1
             else:

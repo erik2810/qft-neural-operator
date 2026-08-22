@@ -218,6 +218,32 @@ the baseline config turns off the spectral branch, the boundary context field, s
 translation invariance and the free-theory residual all at once. A component-wise ablation
 is now affordable but has not been run.
 
+### The deployed checkpoint
+
+The model the frontend ships is trained at full width on the capped distribution -- 4096
+theories, 40 epochs, $\sigma^2 = 0$, one seed:
+
+```
+    spectrum R^2            0.9596      (last-10 epoch stdev 0.0010)
+    gamma relative error    0.0319
+    log W relative L2       3.1e-04
+```
+
+| family | $\gamma$ MAE |
+| --- | --- |
+| $\phi^4$ | 5.6e-05 |
+| free | 8.4e-05 |
+| Sine-Gordon | 1.9e-04 |
+| polynomial | 4.3e-04 |
+| Gaussian process | 1.2e-03 |
+
+$\phi^4$ is now the **best**-predicted family, having been the worst before the cap
+(7.7e-04 predicted against an exact zero). That closes the loop on the question this
+started from: the $\phi^4$ failure was real but derivative. A normal-ordered quartic has
+large $V$ and $\langle V''\rangle_0 = 0$, so it needs the model to learn that a
+conspicuous potential contributes nothing -- and it could not, while a handful of extreme
+GP draws were absorbing the gradient. Remove them and it learns it easily.
+
 ### Reproducibility, and why it needed fixing
 
 Before the perturbative-regime cap, this problem could not be measured. Three seeds of an

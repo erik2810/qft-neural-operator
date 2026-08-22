@@ -280,3 +280,35 @@ def test_an_unsatisfiable_cap_fails_rather_than_looping(physics_cft: PhysicsConf
 def test_gamma_ratio_cap_is_validated() -> None:
     with pytest.raises(ValueError, match="max_gamma_ratio"):
         DataConfig(max_gamma_ratio=0.0)
+
+
+def test_cap_bounds_gamma_across_the_running_window(physics_cft: PhysicsConfig) -> None:
+    # The cap must bound the gamma the *targets* carry, not the one the coupling happens
+    # to be quoted at. With a relevant coupling the correlator is built from
+    # lambda_bar(1/r), so gamma varies across the separation window -- at epsilon = 0.35 by
+    # about a factor of six. Checking only the reference value let samples through four
+    # times over the cap, in exactly the configuration the cap exists to protect.
+    cfg = DataConfig(n_phi=32, n_pairs=16, max_gamma_ratio=0.05)
+    rg = RGConfig(epsilon=0.35, two_loop=2.0, log_scale_jitter=1.0)
+    dataset = AdS2CorrelatorDataset(400, physics=physics_cft, data=cfg, rg=rg, seed=0)
+
+    free = physics_cft.free_dimension
+    running = (free - dataset.delta_eff).abs() / free
+    assert float(running.max()) <= 0.05 + 1e-6
+    # The reference-scale gamma sits comfortably below the cap precisely because the
+    # binding constraint is now the window edge.
+    assert float(dataset.gamma.abs().max() / free) < 0.05
+    # Enforcing the stronger bound necessarily costs more draws.
+    assert dataset.statistics.rejected > 0
+
+
+def test_marginal_flow_caps_on_the_reference_value(physics_cft: PhysicsConfig) -> None:
+    # With no running the two notions coincide, so the stricter check must not make the
+    # marginal case any more restrictive.
+    cfg = DataConfig(n_phi=32, n_pairs=16, max_gamma_ratio=0.05)
+    dataset = AdS2CorrelatorDataset(400, physics=physics_cft, data=cfg, rg=RGConfig(), seed=0)
+    free = physics_cft.free_dimension
+    assert float((free - dataset.delta_eff).abs().max() / free) <= 0.05 + 1e-6
+    assert float(dataset.gamma.abs().max() / free) == pytest.approx(
+        float((free - dataset.delta_eff).abs().max() / free), abs=1e-6
+    )
