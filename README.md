@@ -163,8 +163,11 @@ Three target modes, selected by `data=<mode>`:
   exactly RG-invariant.
 - **`quadrature`** — strictly first order, contact diagram from actual bulk quadrature
   with $\epsilon = 1/M$. Honest about being fixed-order, hence not RG-invariant.
-- **`hybrid`** — $\gamma$ *measured* from the quadrature, then resummed. Numerically
-  grounded and RG-consistent; this is the flagship pipeline.
+- **`hybrid`** — $\gamma$ *measured* from the quadrature, then resummed. Under
+  `physics=ads2_cft` this yields labels identical to `resummed` to ~1e-7, because the
+  measured $C_{\log}$ and the analytic $2L^2c_\Delta$ agree to that precision. It is not a
+  second kind of target; what it buys is provenance — the label is derived from bulk
+  quadrature rather than assumed — and a standing regression check on the integrator.
 
 Potentials are drawn from a mixture of free, Sine-Gordon, $\phi^4$, random polynomial and
 Gaussian-process families. GP samples use a random-Fourier-feature representation, so the

@@ -24,6 +24,25 @@ All notable changes to this project are documented here, following
   reference run, where $R^2$ fell from 0.756 to 0.716 while the mean absolute error
   halved.
 
+### Changed
+
+- `data=hybrid` is no longer described as a distinct or superior target. Under
+  `physics=ads2_cft` it produces labels identical to `data=resummed` to ~1e-7, because the
+  measured $C_{\log}$ and the analytic $2L^2c_\Delta$ agree to that precision. What it
+  offers is provenance -- the label is derived from bulk quadrature rather than assumed --
+  and a regression check on the integrator.
+
+### Measured
+
+- Architecture ablation, three seeds: the Fourier-DeepONet reaches $R^2 = 0.900 \pm 0.011$
+  and $\gamma$ relative error $0.066 \pm 0.004$ against $0.747 \pm 0.075$ and
+  $0.332 \pm 0.055$ for `model=baseline_deeponet` -- 5x on $\gamma$, 11.8x on $\log W$,
+  with non-overlapping seed windows.
+- Seed-variance study, three seeds x {capped, uncapped}: the cap reduces across-seed $R^2$
+  spread 11.8x (0.134 to 0.011). Two earlier runs whose labels agreed to 1e-7 had landed
+  at $R^2 = 0.716$ and $0.902$, so single-run comparisons on the uncapped distribution
+  were meaningless.
+
 ## [0.2.0] - 2026-08-22
 
 ### Added

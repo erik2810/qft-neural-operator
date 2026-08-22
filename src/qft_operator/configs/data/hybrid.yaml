@@ -1,8 +1,18 @@
-# Anomalous dimension measured from the numerically integrated AdS2 contact diagram
-# (the log-derivative of the regulated bulk integral), then resummed into an
-# RG-consistent power law. Numerically grounded and exactly RG-invariant -- the flagship
-# pipeline. Pair with physics=ads2_cft so the measured coefficient matches the analytic
-# one (see PhysicsConfig.convention_ratio).
+# Anomalous dimension measured from the numerically integrated AdS2 contact diagram (the
+# log-derivative of the regulated bulk integral), then resummed into an RG-consistent
+# power law.
+#
+# Under physics=ads2_cft this produces labels *identical* to data=resummed: the measured
+# C_log agrees with the analytic 2 L^2 c_Delta to ~2e-7, so gamma differs by <1e-7 and
+# log W by <1e-6. That is the framework validating itself, not a second kind of target --
+# training on this mode will not give a different model, and a run-to-run difference
+# between the two is variance, not an effect.
+#
+# What it buys is epistemic: the labels are *derived* from bulk quadrature rather than
+# assumed from a closed form. Use it when that provenance matters, or to catch a
+# regression in the quadrature. Under the reference normalization the two disagree by the
+# c_Delta convention factor (see PhysicsConfig.convention_ratio), and then the difference
+# is real -- and a bug.
 n_train: 8192
 n_val: 1024
 n_test: 1024
