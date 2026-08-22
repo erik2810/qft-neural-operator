@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { loadManifest, loadParity, loadWeights } from "./__fixtures__/load";
-import { Operator } from "./operator";
+import { decodeHalfBlock, Operator } from "./operator";
 import { erf, gelu, interp1dUniform, layerNorm, linear } from "./nn";
 import { irfft, rfft, rfftBins } from "./fft";
 
@@ -173,5 +173,41 @@ describe("operator", () => {
     const scaled = operator.scaleFeatures(Float64Array.from([1, 2, 3]));
     const factor = operator.manifest.feature_scale || 1;
     expect(Array.from(scaled)).toEqual([1 / factor, 2 / factor, 3 / factor]);
+  });
+});
+
+describe("half precision", () => {
+  it("decodes IEEE-754 binary16 including the awkward cases", () => {
+    const buffer = new ArrayBuffer(14);
+    const view = new DataView(buffer);
+    // 0, 1, -2, 0.5, 65504 (max normal), 6.1035e-5 (min normal), 6e-8 (subnormal)
+    const bits = [0x0000, 0x3c00, 0xc000, 0x3800, 0x7bff, 0x0400, 0x0001];
+    bits.forEach((b, i) => view.setUint16(i * 2, b, true));
+    const out = decodeHalfBlock(buffer, 0, bits.length);
+    expect(out[0]).toBe(0);
+    expect(out[1]).toBeCloseTo(1, 6);
+    expect(out[2]).toBeCloseTo(-2, 6);
+    expect(out[3]).toBeCloseTo(0.5, 6);
+    expect(out[4]).toBeCloseTo(65504, 0);
+    expect(out[5]).toBeCloseTo(6.10352e-5, 9);
+    expect(out[6]).toBeCloseTo(5.96046e-8, 12);
+  });
+
+  it("round-trips the values a weight tensor actually holds", () => {
+    // Weights live in roughly [-1, 1]; half precision keeps ~3 decimal digits there.
+    const values = [0.1, -0.25, 0.003, 0.9999, -1e-4];
+    const buffer = new ArrayBuffer(values.length * 2);
+    const view = new DataView(buffer);
+    values.forEach((v, i) => {
+      // Encode via Float32 -> binary16 the same way torch does (round to nearest even).
+      const f32 = new Float32Array([v]);
+      const u32 = new Uint32Array(f32.buffer)[0];
+      const sign = (u32 >>> 16) & 0x8000;
+      const exp = ((u32 >>> 23) & 0xff) - 127 + 15;
+      const frac = (u32 >>> 13) & 0x3ff;
+      view.setUint16(i * 2, sign | (exp << 10) | frac, true);
+    });
+    const out = decodeHalfBlock(buffer, 0, values.length);
+    values.forEach((v, i) => expect(out[i]).toBeCloseTo(v, 3));
   });
 });

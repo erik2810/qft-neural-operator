@@ -1,0 +1,803 @@
+{
+  "format": "qft-operator-weights",
+  "version": 1,
+  "trained": true,
+  "spectral_form": "fourier",
+  "dtype": "float16",
+  "phi_max": 3.0,
+  "feature_scale": 0.26587793231010437,
+  "physics": {
+    "L": 1.0,
+    "m_sq": 0.75,
+    "delta": 1.5,
+    "c_delta": 0.49999999999999994,
+    "log_coefficient": 0.9999999999999999,
+    "free_dimension": 1.5,
+    "sigma_sq": 0.0
+  },
+  "architecture": {
+    "n_phi": 64,
+    "latent_dim": 128,
+    "branch_spectral": true,
+    "branch_blocks": 4,
+    "n_tokens": 8,
+    "emit_tokens": false,
+    "trunk_layers": 4,
+    "spectral_mixing": true,
+    "context_grid": 64,
+    "context_width": 64,
+    "context_blocks": 2,
+    "log_r_min": -3.5,
+    "log_r_max": 3.0,
+    "num_invariants": 3,
+    "num_frequencies": 16,
+    "radial_mode": "separation",
+    "translation_invariant": true,
+    "log_r_scale": 3.0,
+    "head": "inner_product",
+    "residual_mode": "free",
+    "free_dimension": 1.5,
+    "L": 1.0
+  },
+  "spectral_grid_sizes": {
+    "branch.blocks.0.spectral": 64,
+    "branch.blocks.1.spectral": 64,
+    "branch.blocks.2.spectral": 64,
+    "branch.blocks.3.spectral": 64,
+    "trunk.context.blocks.0.spectral": 64,
+    "trunk.context.blocks.1.spectral": 64
+  },
+  "tensors": [
+    {
+      "name": "branch.phi_grid",
+      "shape": [
+        64
+      ],
+      "offset": 0,
+      "bytes": 128
+    },
+    {
+      "name": "branch.lift.weight",
+      "shape": [
+        64,
+        2,
+        1
+      ],
+      "offset": 128,
+      "bytes": 256
+    },
+    {
+      "name": "branch.lift.bias",
+      "shape": [
+        64
+      ],
+      "offset": 384,
+      "bytes": 128
+    },
+    {
+      "name": "branch.blocks.0.spectral.weight",
+      "shape": [
+        64,
+        64,
+        16,
+        2
+      ],
+      "offset": 512,
+      "bytes": 262144
+    },
+    {
+      "name": "branch.blocks.0.pointwise.weight",
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "offset": 262656,
+      "bytes": 8192
+    },
+    {
+      "name": "branch.blocks.0.pointwise.bias",
+      "shape": [
+        64
+      ],
+      "offset": 270848,
+      "bytes": 128
+    },
+    {
+      "name": "branch.blocks.0.norm.weight",
+      "shape": [
+        64
+      ],
+      "offset": 270976,
+      "bytes": 128
+    },
+    {
+      "name": "branch.blocks.0.norm.bias",
+      "shape": [
+        64
+      ],
+      "offset": 271104,
+      "bytes": 128
+    },
+    {
+      "name": "branch.blocks.1.spectral.weight",
+      "shape": [
+        64,
+        64,
+        16,
+        2
+      ],
+      "offset": 271232,
+      "bytes": 262144
+    },
+    {
+      "name": "branch.blocks.1.pointwise.weight",
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "offset": 533376,
+      "bytes": 8192
+    },
+    {
+      "name": "branch.blocks.1.pointwise.bias",
+      "shape": [
+        64
+      ],
+      "offset": 541568,
+      "bytes": 128
+    },
+    {
+      "name": "branch.blocks.1.norm.weight",
+      "shape": [
+        64
+      ],
+      "offset": 541696,
+      "bytes": 128
+    },
+    {
+      "name": "branch.blocks.1.norm.bias",
+      "shape": [
+        64
+      ],
+      "offset": 541824,
+      "bytes": 128
+    },
+    {
+      "name": "branch.blocks.2.spectral.weight",
+      "shape": [
+        64,
+        64,
+        16,
+        2
+      ],
+      "offset": 541952,
+      "bytes": 262144
+    },
+    {
+      "name": "branch.blocks.2.pointwise.weight",
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "offset": 804096,
+      "bytes": 8192
+    },
+    {
+      "name": "branch.blocks.2.pointwise.bias",
+      "shape": [
+        64
+      ],
+      "offset": 812288,
+      "bytes": 128
+    },
+    {
+      "name": "branch.blocks.2.norm.weight",
+      "shape": [
+        64
+      ],
+      "offset": 812416,
+      "bytes": 128
+    },
+    {
+      "name": "branch.blocks.2.norm.bias",
+      "shape": [
+        64
+      ],
+      "offset": 812544,
+      "bytes": 128
+    },
+    {
+      "name": "branch.blocks.3.spectral.weight",
+      "shape": [
+        64,
+        64,
+        16,
+        2
+      ],
+      "offset": 812672,
+      "bytes": 262144
+    },
+    {
+      "name": "branch.blocks.3.pointwise.weight",
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "offset": 1074816,
+      "bytes": 8192
+    },
+    {
+      "name": "branch.blocks.3.pointwise.bias",
+      "shape": [
+        64
+      ],
+      "offset": 1083008,
+      "bytes": 128
+    },
+    {
+      "name": "branch.blocks.3.norm.weight",
+      "shape": [
+        64
+      ],
+      "offset": 1083136,
+      "bytes": 128
+    },
+    {
+      "name": "branch.blocks.3.norm.bias",
+      "shape": [
+        64
+      ],
+      "offset": 1083264,
+      "bytes": 128
+    },
+    {
+      "name": "branch.head.net.0.weight",
+      "shape": [
+        256,
+        128
+      ],
+      "offset": 1083392,
+      "bytes": 65536
+    },
+    {
+      "name": "branch.head.net.0.bias",
+      "shape": [
+        256
+      ],
+      "offset": 1148928,
+      "bytes": 512
+    },
+    {
+      "name": "branch.head.net.1.weight",
+      "shape": [
+        256
+      ],
+      "offset": 1149440,
+      "bytes": 512
+    },
+    {
+      "name": "branch.head.net.1.bias",
+      "shape": [
+        256
+      ],
+      "offset": 1149952,
+      "bytes": 512
+    },
+    {
+      "name": "branch.head.net.3.weight",
+      "shape": [
+        256,
+        256
+      ],
+      "offset": 1150464,
+      "bytes": 131072
+    },
+    {
+      "name": "branch.head.net.3.bias",
+      "shape": [
+        256
+      ],
+      "offset": 1281536,
+      "bytes": 512
+    },
+    {
+      "name": "branch.head.net.4.weight",
+      "shape": [
+        256
+      ],
+      "offset": 1282048,
+      "bytes": 512
+    },
+    {
+      "name": "branch.head.net.4.bias",
+      "shape": [
+        256
+      ],
+      "offset": 1282560,
+      "bytes": 512
+    },
+    {
+      "name": "branch.head.net.6.weight",
+      "shape": [
+        128,
+        256
+      ],
+      "offset": 1283072,
+      "bytes": 65536
+    },
+    {
+      "name": "branch.head.net.6.bias",
+      "shape": [
+        128
+      ],
+      "offset": 1348608,
+      "bytes": 256
+    },
+    {
+      "name": "trunk.encoding.fourier.projection",
+      "shape": [
+        3,
+        16
+      ],
+      "offset": 1348864,
+      "bytes": 96
+    },
+    {
+      "name": "trunk.context.grid",
+      "shape": [
+        64
+      ],
+      "offset": 1348960,
+      "bytes": 128
+    },
+    {
+      "name": "trunk.context.seed.weight",
+      "shape": [
+        64,
+        2,
+        1
+      ],
+      "offset": 1349088,
+      "bytes": 256
+    },
+    {
+      "name": "trunk.context.seed.bias",
+      "shape": [
+        64
+      ],
+      "offset": 1349344,
+      "bytes": 128
+    },
+    {
+      "name": "trunk.context.film.to_scale_shift.weight",
+      "shape": [
+        128,
+        128
+      ],
+      "offset": 1349472,
+      "bytes": 32768
+    },
+    {
+      "name": "trunk.context.film.to_scale_shift.bias",
+      "shape": [
+        128
+      ],
+      "offset": 1382240,
+      "bytes": 256
+    },
+    {
+      "name": "trunk.context.blocks.0.spectral.weight",
+      "shape": [
+        64,
+        64,
+        16,
+        2
+      ],
+      "offset": 1382496,
+      "bytes": 262144
+    },
+    {
+      "name": "trunk.context.blocks.0.pointwise.weight",
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "offset": 1644640,
+      "bytes": 8192
+    },
+    {
+      "name": "trunk.context.blocks.0.pointwise.bias",
+      "shape": [
+        64
+      ],
+      "offset": 1652832,
+      "bytes": 128
+    },
+    {
+      "name": "trunk.context.blocks.0.norm.weight",
+      "shape": [
+        64
+      ],
+      "offset": 1652960,
+      "bytes": 128
+    },
+    {
+      "name": "trunk.context.blocks.0.norm.bias",
+      "shape": [
+        64
+      ],
+      "offset": 1653088,
+      "bytes": 128
+    },
+    {
+      "name": "trunk.context.blocks.1.spectral.weight",
+      "shape": [
+        64,
+        64,
+        16,
+        2
+      ],
+      "offset": 1653216,
+      "bytes": 262144
+    },
+    {
+      "name": "trunk.context.blocks.1.pointwise.weight",
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "offset": 1915360,
+      "bytes": 8192
+    },
+    {
+      "name": "trunk.context.blocks.1.pointwise.bias",
+      "shape": [
+        64
+      ],
+      "offset": 1923552,
+      "bytes": 128
+    },
+    {
+      "name": "trunk.context.blocks.1.norm.weight",
+      "shape": [
+        64
+      ],
+      "offset": 1923680,
+      "bytes": 128
+    },
+    {
+      "name": "trunk.context.blocks.1.norm.bias",
+      "shape": [
+        64
+      ],
+      "offset": 1923808,
+      "bytes": 128
+    },
+    {
+      "name": "trunk.lift.weight",
+      "shape": [
+        128,
+        99
+      ],
+      "offset": 1923936,
+      "bytes": 25344
+    },
+    {
+      "name": "trunk.lift.bias",
+      "shape": [
+        128
+      ],
+      "offset": 1949280,
+      "bytes": 256
+    },
+    {
+      "name": "trunk.films.0.to_scale_shift.weight",
+      "shape": [
+        256,
+        128
+      ],
+      "offset": 1949536,
+      "bytes": 65536
+    },
+    {
+      "name": "trunk.films.0.to_scale_shift.bias",
+      "shape": [
+        256
+      ],
+      "offset": 2015072,
+      "bytes": 512
+    },
+    {
+      "name": "trunk.films.1.to_scale_shift.weight",
+      "shape": [
+        256,
+        128
+      ],
+      "offset": 2015584,
+      "bytes": 65536
+    },
+    {
+      "name": "trunk.films.1.to_scale_shift.bias",
+      "shape": [
+        256
+      ],
+      "offset": 2081120,
+      "bytes": 512
+    },
+    {
+      "name": "trunk.films.2.to_scale_shift.weight",
+      "shape": [
+        256,
+        128
+      ],
+      "offset": 2081632,
+      "bytes": 65536
+    },
+    {
+      "name": "trunk.films.2.to_scale_shift.bias",
+      "shape": [
+        256
+      ],
+      "offset": 2147168,
+      "bytes": 512
+    },
+    {
+      "name": "trunk.films.3.to_scale_shift.weight",
+      "shape": [
+        256,
+        128
+      ],
+      "offset": 2147680,
+      "bytes": 65536
+    },
+    {
+      "name": "trunk.films.3.to_scale_shift.bias",
+      "shape": [
+        256
+      ],
+      "offset": 2213216,
+      "bytes": 512
+    },
+    {
+      "name": "trunk.layers.0.0.weight",
+      "shape": [
+        128
+      ],
+      "offset": 2213728,
+      "bytes": 256
+    },
+    {
+      "name": "trunk.layers.0.0.bias",
+      "shape": [
+        128
+      ],
+      "offset": 2213984,
+      "bytes": 256
+    },
+    {
+      "name": "trunk.layers.0.1.weight",
+      "shape": [
+        128,
+        128
+      ],
+      "offset": 2214240,
+      "bytes": 32768
+    },
+    {
+      "name": "trunk.layers.0.1.bias",
+      "shape": [
+        128
+      ],
+      "offset": 2247008,
+      "bytes": 256
+    },
+    {
+      "name": "trunk.layers.0.4.weight",
+      "shape": [
+        128,
+        128
+      ],
+      "offset": 2247264,
+      "bytes": 32768
+    },
+    {
+      "name": "trunk.layers.0.4.bias",
+      "shape": [
+        128
+      ],
+      "offset": 2280032,
+      "bytes": 256
+    },
+    {
+      "name": "trunk.layers.1.0.weight",
+      "shape": [
+        128
+      ],
+      "offset": 2280288,
+      "bytes": 256
+    },
+    {
+      "name": "trunk.layers.1.0.bias",
+      "shape": [
+        128
+      ],
+      "offset": 2280544,
+      "bytes": 256
+    },
+    {
+      "name": "trunk.layers.1.1.weight",
+      "shape": [
+        128,
+        128
+      ],
+      "offset": 2280800,
+      "bytes": 32768
+    },
+    {
+      "name": "trunk.layers.1.1.bias",
+      "shape": [
+        128
+      ],
+      "offset": 2313568,
+      "bytes": 256
+    },
+    {
+      "name": "trunk.layers.1.4.weight",
+      "shape": [
+        128,
+        128
+      ],
+      "offset": 2313824,
+      "bytes": 32768
+    },
+    {
+      "name": "trunk.layers.1.4.bias",
+      "shape": [
+        128
+      ],
+      "offset": 2346592,
+      "bytes": 256
+    },
+    {
+      "name": "trunk.layers.2.0.weight",
+      "shape": [
+        128
+      ],
+      "offset": 2346848,
+      "bytes": 256
+    },
+    {
+      "name": "trunk.layers.2.0.bias",
+      "shape": [
+        128
+      ],
+      "offset": 2347104,
+      "bytes": 256
+    },
+    {
+      "name": "trunk.layers.2.1.weight",
+      "shape": [
+        128,
+        128
+      ],
+      "offset": 2347360,
+      "bytes": 32768
+    },
+    {
+      "name": "trunk.layers.2.1.bias",
+      "shape": [
+        128
+      ],
+      "offset": 2380128,
+      "bytes": 256
+    },
+    {
+      "name": "trunk.layers.2.4.weight",
+      "shape": [
+        128,
+        128
+      ],
+      "offset": 2380384,
+      "bytes": 32768
+    },
+    {
+      "name": "trunk.layers.2.4.bias",
+      "shape": [
+        128
+      ],
+      "offset": 2413152,
+      "bytes": 256
+    },
+    {
+      "name": "trunk.layers.3.0.weight",
+      "shape": [
+        128
+      ],
+      "offset": 2413408,
+      "bytes": 256
+    },
+    {
+      "name": "trunk.layers.3.0.bias",
+      "shape": [
+        128
+      ],
+      "offset": 2413664,
+      "bytes": 256
+    },
+    {
+      "name": "trunk.layers.3.1.weight",
+      "shape": [
+        128,
+        128
+      ],
+      "offset": 2413920,
+      "bytes": 32768
+    },
+    {
+      "name": "trunk.layers.3.1.bias",
+      "shape": [
+        128
+      ],
+      "offset": 2446688,
+      "bytes": 256
+    },
+    {
+      "name": "trunk.layers.3.4.weight",
+      "shape": [
+        128,
+        128
+      ],
+      "offset": 2446944,
+      "bytes": 32768
+    },
+    {
+      "name": "trunk.layers.3.4.bias",
+      "shape": [
+        128
+      ],
+      "offset": 2479712,
+      "bytes": 256
+    },
+    {
+      "name": "trunk.project.weight",
+      "shape": [
+        128,
+        128
+      ],
+      "offset": 2479968,
+      "bytes": 32768
+    },
+    {
+      "name": "trunk.project.bias",
+      "shape": [
+        128
+      ],
+      "offset": 2512736,
+      "bytes": 256
+    },
+    {
+      "name": "readout.weight",
+      "shape": [
+        1,
+        128
+      ],
+      "offset": 2512992,
+      "bytes": 256
+    },
+    {
+      "name": "readout.bias",
+      "shape": [
+        1
+      ],
+      "offset": 2513248,
+      "bytes": 2
+    }
+  ],
+  "total_bytes": 2513250
+}

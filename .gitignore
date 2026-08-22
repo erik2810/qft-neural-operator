@@ -16,12 +16,10 @@ checkpoints/
 data/cache/
 figures/
 
-# The exported demo operator is a build artifact of a checkpoint, not a source. It is
-# several MiB and is re-exported whenever a better model is trained, so tracking it would
-# bake every superseded copy into history. Regenerate with:
+# NOTE: frontend/public/operator/{manifest.json,weights.bin} are committed on purpose so
+# the demo works from a fresh clone and GitHub Pages has something to deploy. Exported at
+# half precision (~2.4 MiB), which costs 2.4% of the model's own error. Regenerate with:
 #   uv run qft-operator-export --checkpoint <run>/checkpoints/best.ckpt \
-#       --output frontend/public/operator
-# The page degrades gracefully without it and says so in the header.
-frontend/public/operator/
+#       --dtype float16 --output frontend/public/operator
 .idea/
 .DS_Store

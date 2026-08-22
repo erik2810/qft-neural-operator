@@ -57,7 +57,7 @@ export interface Manifest {
   version: number;
   trained: boolean;
   spectral_form: "fourier" | "circular";
-  dtype: "float32";
+  dtype: "float32" | "float16";
   /** Half-width of the physical field grid the branch input is sampled on. */
   phi_max: number;
   feature_scale: number;
@@ -66,6 +66,30 @@ export interface Manifest {
   spectral_grid_sizes: Record<string, number>;
   tensors: TensorEntry[];
   total_bytes: number;
+}
+
+/**
+ * Decode one IEEE-754 half-precision value.
+ *
+ * `Float16Array` is too new to rely on, and the decode is ten lines. Half precision
+ * halves the download at a cost the page cannot show: the weights keep ~3 decimal digits,
+ * while the prediction is drawn against an exact curve it differs from by a part in 100.
+ */
+function decodeHalf(bits: number): number {
+  const sign = bits & 0x8000 ? -1 : 1;
+  const exponent = (bits >> 10) & 0x1f;
+  const fraction = bits & 0x03ff;
+  if (exponent === 0) return sign * 2 ** -14 * (fraction / 1024);
+  if (exponent === 0x1f) return fraction ? Number.NaN : sign * Number.POSITIVE_INFINITY;
+  return sign * 2 ** (exponent - 15) * (1 + fraction / 1024);
+}
+
+/** Expand a half-precision block into the Float32Array the runtime works in. */
+export function decodeHalfBlock(buffer: ArrayBuffer, byteOffset: number, count: number): Float32Array {
+  const view = new DataView(buffer, byteOffset, count * 2);
+  const out = new Float32Array(count);
+  for (let i = 0; i < count; i += 1) out[i] = decodeHalf(view.getUint16(i * 2, true));
+  return out;
 }
 
 /** A loaded operator: weights indexed by name, plus the architecture that shaped them. */
@@ -88,9 +112,16 @@ export class Operator {
     if (manifest.architecture.head !== "inner_product") {
       throw new Error(`this runtime implements the inner-product head only`);
     }
+    const half = manifest.dtype === "float16";
     for (const entry of manifest.tensors) {
-      // Offsets are multiples of 4 by construction, so a direct view is safe.
-      this.weights.set(entry.name, new Float32Array(blob, entry.offset, entry.bytes / 4));
+      // float32 offsets are multiples of 4 by construction, so a direct view is safe;
+      // half precision has to be expanded, which costs one pass at load time.
+      this.weights.set(
+        entry.name,
+        half
+          ? decodeHalfBlock(blob, entry.offset, entry.bytes / 2)
+          : new Float32Array(blob, entry.offset, entry.bytes / 4),
+      );
       this.shapes.set(entry.name, entry.shape);
     }
   }

@@ -24,8 +24,18 @@ All notable changes to this project are documented here, following
   reference run, where $R^2$ fell from 0.756 to 0.716 while the mean absolute error
   halved.
 
+### Added
+
+- `qft-operator-export --dtype float16`: halves the weight blob (4.79 → 2.40 MiB) at a cost
+  of 2.4% of the model's own error. The browser runtime decodes binary16 by hand, since
+  `Float16Array` is too new to rely on.
+- GitHub Pages deploy workflow, gated on the Python and frontend jobs. It deploys the
+  committed export; no training happens in CI.
+
 ### Changed
 
+- The exported demo operator is now committed, at half precision, so the page works from a
+  fresh clone and Pages has an artifact to publish.
 - `data=hybrid` is no longer described as a distinct or superior target. Under
   `physics=ads2_cft` it produces labels identical to `data=resummed` to ~1e-7, because the
   measured $C_{\log}$ and the analytic $2L^2c_\Delta$ agree to that precision. What it
@@ -48,8 +58,18 @@ All notable changes to this project are documented here, following
   at $R^2 = 0.716$ and $0.902$, so single-run comparisons on the uncapped distribution
   were meaningless.
 
+### Added
+
+- `qft-operator-export --dtype float16`: halves the weight blob (4.79 → 2.40 MiB) at a cost
+  of 2.4% of the model's own error. The browser runtime decodes binary16 by hand, since
+  `Float16Array` is too new to rely on.
+- GitHub Pages deploy workflow, gated on the Python and frontend jobs. It deploys the
+  committed export; no training happens in CI.
+
 ### Changed
 
+- The exported demo operator is now committed, at half precision, so the page works from a
+  fresh clone and Pages has an artifact to publish.
 - `data=hybrid` is no longer described as a distinct or superior target. Under
   `physics=ads2_cft` it produces labels identical to `data=resummed` to ~1e-7, because the
   measured $C_{\log}$ and the analytic $2L^2c_\Delta$ agree to that precision. What it

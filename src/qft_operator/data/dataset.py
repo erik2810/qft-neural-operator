@@ -218,9 +218,7 @@ class AdS2CorrelatorDataset(Dataset[dict[str, Tensor]]):
         log_m_ref = self.rg_config.log_reference_scale
         jitter = self.rg_config.log_scale_jitter
 
-        ceiling = (
-            None if cfg.max_gamma_ratio is None else cfg.max_gamma_ratio * phys.free_dimension
-        )
+        ceiling = None if cfg.max_gamma_ratio is None else cfg.max_gamma_ratio * phys.free_dimension
         rejected = 0
 
         for _ in range(self.n_samples):

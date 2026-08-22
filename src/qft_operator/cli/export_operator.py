@@ -174,6 +174,7 @@ def export_operator(
     bake_spectral: bool = False,
     model: FourierDeepONet | None = None,
     phi_max: float = 3.0,
+    dtype: str = "float32",
 ) -> Path:
     """Write ``weights.bin`` and ``manifest.json`` for browser inference.
 
@@ -192,6 +193,11 @@ def export_operator(
         model: Export this already-constructed network instead of building one. Used by
             the parity fixture, where the exported weights must be the very same tensors
             the golden values were computed from.
+        dtype: ``"float32"`` or ``"float16"``. Half precision halves the download at a
+            cost the page cannot show: the weights carry ~3 decimal digits, while the
+            prediction is drawn against an exact curve whose difference from it is a part
+            in $10^{2}$. Keep float32 for the parity fixture, where the point is to detect
+            a mis-ported layer rather than to render one.
         phi_max: Half-width of the physical field grid the branch input is sampled on.
             Recorded in the manifest because a consumer cannot recover it from the
             weights -- the branch's own coordinate buffer is normalized to [-1, 1], so
@@ -235,15 +241,19 @@ def export_operator(
                 baked[f"{name}.kernel"] = kernel
                 LOGGER.info("baked %s at N=%d -> %s", name, grid_sizes[name], tuple(kernel.shape))
 
+    if dtype not in ("float32", "float16"):
+        raise ValueError(f"dtype must be 'float32' or 'float16', got {dtype!r}")
+    torch_dtype = torch.float32 if dtype == "float32" else torch.float16
+
     tensors: list[dict[str, Any]] = []
     blob = bytearray()
     replaced = {f"{n}.weight" for n in grid_sizes} if bake_spectral else set()
     for name, tensor in list(model.state_dict().items()):
         if name in replaced:
             continue  # superseded by its baked circular kernel
-        _append(blob, tensors, name, tensor)
+        _append(blob, tensors, name, tensor, torch_dtype)
     for name, tensor in baked.items():
-        _append(blob, tensors, name, tensor)
+        _append(blob, tensors, name, tensor, torch_dtype)
 
     output_dir.mkdir(parents=True, exist_ok=True)
     (output_dir / "weights.bin").write_bytes(bytes(blob))
@@ -252,7 +262,7 @@ def export_operator(
         "version": FORMAT_VERSION,
         "trained": trained,
         "spectral_form": "circular" if bake_spectral else "fourier",
-        "dtype": "float32",
+        "dtype": dtype,
         "phi_max": phi_max,
         "feature_scale": feature_scale,
         "physics": {
@@ -277,9 +287,15 @@ def export_operator(
     return manifest_path
 
 
-def _append(blob: bytearray, table: list[dict[str, Any]], name: str, tensor: Tensor) -> None:
+def _append(
+    blob: bytearray,
+    table: list[dict[str, Any]],
+    name: str,
+    tensor: Tensor,
+    dtype: torch.dtype = torch.float32,
+) -> None:
     """Append one tensor to the blob and record its offset."""
-    data = tensor.detach().to(torch.float32).contiguous().cpu().numpy().tobytes()
+    data = tensor.detach().to(dtype).contiguous().cpu().numpy().tobytes()
     table.append(
         {
             "name": name,
@@ -318,6 +334,12 @@ def main() -> None:
         help="half-width of the field grid the branch input is sampled on",
     )
     parser.add_argument(
+        "--dtype",
+        choices=("float32", "float16"),
+        default="float32",
+        help="half precision halves the download; see the module docstring",
+    )
+    parser.add_argument(
         "--feature-scale",
         type=float,
         default=None,
@@ -338,6 +360,7 @@ def main() -> None:
         physics=physics,
         bake_spectral=args.bake_spectral,
         phi_max=args.phi_max,
+        dtype=args.dtype,
     )
     if args.feature_scale is not None:
         manifest = json.loads(path.read_text())

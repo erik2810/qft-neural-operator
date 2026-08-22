@@ -234,11 +234,15 @@ def test_gamma_ratio_cap_removes_the_non_perturbative_tail(physics_cft: PhysicsC
     # samples dominate it.
     cfg = DataConfig(n_phi=32, n_pairs=8)
     uncapped = AdS2CorrelatorDataset(
-        800, physics=physics_cft, data=DataConfig(**{**cfg.__dict__, "max_gamma_ratio": None}),
+        800,
+        physics=physics_cft,
+        data=DataConfig(**{**cfg.__dict__, "max_gamma_ratio": None}),
         seed=0,
     )
     capped = AdS2CorrelatorDataset(
-        800, physics=physics_cft, data=DataConfig(**{**cfg.__dict__, "max_gamma_ratio": 0.05}),
+        800,
+        physics=physics_cft,
+        data=DataConfig(**{**cfg.__dict__, "max_gamma_ratio": 0.05}),
         seed=0,
     )
     ceiling = 0.05 * physics_cft.free_dimension
@@ -265,13 +269,18 @@ def test_only_the_gaussian_process_family_is_ever_rejected(physics_cft: PhysicsC
 
 def test_no_cap_keeps_every_draw(physics_cft: PhysicsConfig) -> None:
     cfg = DataConfig(n_phi=32, n_pairs=8, max_gamma_ratio=None)
-    assert AdS2CorrelatorDataset(200, physics=physics_cft, data=cfg, seed=0).statistics.rejected == 0
+    assert (
+        AdS2CorrelatorDataset(200, physics=physics_cft, data=cfg, seed=0).statistics.rejected == 0
+    )
 
 
 def test_an_unsatisfiable_cap_fails_rather_than_looping(physics_cft: PhysicsConfig) -> None:
     cfg = DataConfig(
-        n_phi=32, n_pairs=8, max_gamma_ratio=1e-12,
-        family_weights={"sine_gordon": 1.0}, coupling_range=(0.04, 0.05),
+        n_phi=32,
+        n_pairs=8,
+        max_gamma_ratio=1e-12,
+        family_weights={"sine_gordon": 1.0},
+        coupling_range=(0.04, 0.05),
     )
     with pytest.raises(RuntimeError, match="could not draw a theory"):
         AdS2CorrelatorDataset(4, physics=physics_cft, data=cfg, seed=0)

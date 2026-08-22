@@ -341,7 +341,7 @@ QFT_OPERATOR_CHECKPOINT=outputs/.../last.ckpt uv run uvicorn qft_operator.app.ma
 a standard runtime. Two ways out, and the export supports both:
 
 ```bash
-uv run qft-operator-export --checkpoint outputs/.../best.ckpt --output frontend/public/operator
+uv run qft-operator-export --checkpoint outputs/.../best.ckpt --dtype float16 --output frontend/public/operator
 ```
 
 ```bash
@@ -354,8 +354,14 @@ multiplication in Fourier space is *exactly* a circular convolution on a fixed g
 (verified to ~1e-15), removing the FFT entirely -- which an ONNX or TFLite consumer needs,
 at the cost of size and, at these widths, roughly a thousandfold in arithmetic.
 
-The exported operator is not tracked in git; the page degrades gracefully without it and
-labels the prediction as unavailable.
+`--dtype float16` halves the download (4.79 → 2.40 MiB) for 2.4% of the model's own error
+— the weights keep ~3 decimal digits, while the prediction is drawn against an exact curve
+it differs from by a part in 100. The committed export uses it; the parity fixture stays
+float32, where the point is to catch a mis-ported layer rather than to render one.
+
+The export *is* tracked, so the demo works from a fresh clone and Pages has something to
+deploy. The page also degrades gracefully without it, labelling the prediction as
+unavailable.
 
 ### Two implementations, one physics
 
