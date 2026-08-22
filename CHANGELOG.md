@@ -38,6 +38,11 @@ All notable changes to this project are documented here, following
   and $\gamma$ relative error $0.066 \pm 0.004$ against $0.747 \pm 0.075$ and
   $0.332 \pm 0.055$ for `model=baseline_deeponet` -- 5x on $\gamma$, 11.8x on $\log W$,
   with non-overlapping seed windows.
+- Running-coupling experiment (`rg=relevant`, two seeds): with the window-wide cap the
+  network reaches $R^2 = 0.916$ and an RG residual of 2.7e-06, *below* the marginal
+  control's 4.2e-06, with the absolute $\gamma$ error 1.7x the marginal case as a running
+  exponent should be. Before the cap fix the same configuration gave 0.766 with a seed
+  spread of 0.079.
 - Seed-variance study, three seeds x {capped, uncapped}: the cap reduces across-seed $R^2$
   spread 11.8x (0.134 to 0.011). Two earlier runs whose labels agreed to 1e-7 had landed
   at $R^2 = 0.716$ and $0.902$, so single-run comparisons on the uncapped distribution
@@ -59,6 +64,11 @@ All notable changes to this project are documented here, following
   $R^2 = 0.900 \pm 0.011$ and $\gamma$ relative error $0.066 \pm 0.004$, against
   $0.747 \pm 0.075$ and $0.332 \pm 0.055$ for `model=baseline_deeponet` -- 5x on $\gamma$,
   11.8x on $\log W$, with non-overlapping seed windows.
+- Running-coupling experiment (`rg=relevant`, two seeds): with the window-wide cap the
+  network reaches $R^2 = 0.916$ and an RG residual of 2.7e-06, *below* the marginal
+  control's 4.2e-06, with the absolute $\gamma$ error 1.7x the marginal case as a running
+  exponent should be. Before the cap fix the same configuration gave 0.766 with a seed
+  spread of 0.079.
 - Seed-variance study, three seeds x {capped, uncapped}: the cap reduces across-seed $R^2$
   spread 11.8x (0.134 to 0.011). Two earlier runs whose labels agreed to 1e-7 had landed at
   $R^2 = 0.716$ and $0.902$, so single-run comparisons on the uncapped distribution were

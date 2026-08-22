@@ -264,6 +264,26 @@ How badly this misleads is worth stating plainly. Two runs whose labels agreed t
 landed at $R^2 = 0.716$ and $0.902$ -- a gap that would have looked like a decisive result
 for whichever pipeline happened to draw the better seed.
 
+### A running coupling
+
+With `rg=relevant` ($\epsilon = 0.35$, $b = 2.0$) the Callan-Symanzik term stops being
+near-vacuous: $\Delta_{\rm eff}$ runs with $r$, so $W$ is no longer a pure power law and
+the constraint has content. Two seeds each:
+
+| arm | $\gamma$ MAE | $R^2$ | seed spread | RG residual |
+| --- | --- | --- | --- | --- |
+| marginal (control) | 9.3e-04 | 0.901 | 0.011 | 4.2e-06 |
+| relevant | 1.6e-03 | 0.916 | 0.006 | **2.7e-06** |
+
+The network satisfies the constraint better under a running coupling than under a marginal
+one, which is the right way round -- a marginal $\beta$ only asks it not to depend on
+$\log M$. The data fit is ~1.7× harder in absolute terms, as a running exponent should be.
+
+Note the relative $\gamma$ error moves the *other* way (0.065 → 0.177) purely because the
+window-wide cap removes large-$|\gamma|$ draws and shrinks the normalizer. Normalized
+metrics stop being comparable the moment the distribution changes; that has bitten three
+separate times in this project, which is why absolute errors are quoted alongside.
+
 ### The tadpole
 
 Switching on the coincident-point propagator (`physics.sigma_sq=0.4`) improves every family
