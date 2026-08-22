@@ -1,0 +1,29 @@
+# Root Hydra configuration for qft-neural-operator.
+#
+# Override any leaf from the command line, e.g.
+#   qft-operator-train data=hybrid model=operator_transformer loss.weights.rg=0.05
+#   qft-operator-train -m physics.m_sq=0.25,0.75,2.0        # sweep
+defaults:
+  - physics: ads2_reference
+  - rg: marginal
+  - data: resummed
+  - model: fourier_deeponet
+  - loss: physics_informed
+  - optimizer: adamw
+  - trainer: default
+  - _self_
+
+seed: 1234
+run_name: qft-operator
+# Written under the Hydra run directory unless overridden.
+figures: true
+save_checkpoint: true
+compile_model: false
+
+hydra:
+  job:
+    chdir: false
+  run:
+    dir: outputs/${run_name}/${now:%Y-%m-%d_%H-%M-%S}
+  sweep:
+    dir: multirun/${run_name}/${now:%Y-%m-%d_%H-%M-%S}

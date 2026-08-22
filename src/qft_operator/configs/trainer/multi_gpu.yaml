@@ -1,0 +1,5 @@
+defaults:
+  - default
+devices: -1
+strategy: ddp_find_unused_parameters_false
+precision: bf16-mixed

@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+title: "qft-neural-operator: neural operators for the QFT action-to-observable map in Euclidean AdS2"
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - given-names: Erik
+    family-names: Löffelholz
+    email: eriklfholz@googlemail.com
+repository-code: "https://github.com/erik2810/qft-neural-operator"
+abstract: >-
+  A physics-informed neural operator framework learning the map from bulk interaction
+  potentials V(phi) to boundary connected correlators in Euclidean AdS2. Combines a
+  Fourier-DeepONet architecture carrying the AdS2 conformal factor in its positional
+  encoding with boundary-scaling and Callan-Symanzik losses, and a hybrid data pipeline
+  in which first-order anomalous dimensions are obtained either in closed form or from
+  numerically integrated bulk contact diagrams.
+keywords:
+  - neural operator
+  - DeepONet
+  - Fourier neural operator
+  - quantum field theory
+  - AdS/CFT
+  - holographic renormalization
+  - Sine-Gordon
+  - physics-informed machine learning
+  - renormalization group
+license: MIT
+version: 0.2.0
+date-released: "2026-08-22"

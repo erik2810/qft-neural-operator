@@ -1,0 +1,27 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+dist/
+node_modules/
+frontend/dist/
+build/
+outputs/
+multirun/
+lightning_logs/
+checkpoints/
+data/cache/
+figures/
+
+# The exported demo operator is a build artifact of a checkpoint, not a source. It is
+# several MiB and is re-exported whenever a better model is trained, so tracking it would
+# bake every superseded copy into history. Regenerate with:
+#   uv run qft-operator-export --checkpoint <run>/checkpoints/best.ckpt \
+#       --output frontend/public/operator
+# The page degrades gracefully without it and says so in the header.
+frontend/public/operator/
+.idea/
+.DS_Store

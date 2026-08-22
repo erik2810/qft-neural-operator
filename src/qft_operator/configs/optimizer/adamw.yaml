@@ -1,0 +1,9 @@
+lr: 1.0e-3
+# Applied to weight matrices only; biases, norms and the spectral Fourier coefficients
+# are excluded, since decaying mode weights toward zero is a prior on the operator itself.
+weight_decay: 1.0e-4
+betas: [0.9, 0.999]
+max_epochs: ${trainer.max_epochs}
+warmup_epochs: 5
+min_lr_ratio: 0.01
+gradient_clip: 1.0

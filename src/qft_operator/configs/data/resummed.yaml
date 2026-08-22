@@ -1,0 +1,32 @@
+# Closed-form anomalous dimension, exponentiated into a power law with the coupling
+# evaluated at the physical scale 1/r. Fast, and exactly RG-invariant.
+n_train: 8192
+n_val: 1024
+n_test: 1024
+n_phi: 64
+n_pairs: 32
+phi_max: 3.0
+r_min: 0.05
+r_max: 12.0
+midpoint_range: 4.0
+separation_jitter: 0.4
+target_mode: resummed
+# Sine-Gordon and phi^4 anchor the analytic limits; polynomial and GP families are what
+# force the network to learn the functional V -> gamma rather than memorize two curves.
+family_weights:
+  free: 0.10
+  sine_gordon: 0.30
+  phi4: 0.15
+  polynomial: 0.15
+  gp_fourier: 0.30
+coupling_range: [0.005, 0.05]
+allow_negative_coupling: true
+xi_range: [0.4, 1.2]
+poly_degree: 6
+gp_features: 64
+gp_lengthscale_range: [0.4, 1.5]
+normalize_shapes: true
+standardize_inputs: true
+batch_size: 32
+num_workers: 0
+seed: 0

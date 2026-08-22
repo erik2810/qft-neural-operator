@@ -1,0 +1,11 @@
+# Unit-normalized AdS2 conventions: c_delta derived from Gamma functions, so the
+# closed-form and numerically-integrated pipelines produce identical anomalous
+# dimensions. Prefer this for any run that mixes target_mode=hybrid or quadrature
+# with analytic validation.
+L: 1.0
+m_sq: 0.75
+beta1: 1.0
+beta2: 1.0
+c_delta: null
+sigma_sq: 0.0
+propagator_normalization: cft

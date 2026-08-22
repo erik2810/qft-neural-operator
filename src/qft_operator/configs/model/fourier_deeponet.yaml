@@ -1,0 +1,34 @@
+# Fourier-DeepONet: spectral convolutions along the field coordinate phi in the branch,
+# a metric-aware positional encoding plus a boundary context field in the trunk, and a
+# FiLM-conditioned DeepONet contraction.
+latent_dim: 128
+branch_width: 64
+branch_blocks: 4
+branch_modes: 16
+branch_hidden: [256, 256]
+trunk_width: 128
+trunk_layers: 4
+trunk_modes: 16
+# The boundary context field lives on its own internal grid of separations, which must
+# bracket the data window (DataConfig r_min/r_max) with a little padding so queries never
+# land on the clamped edge of the interpolation.
+context_grid: 64
+context_width: 64
+log_r_range: [-3.5, 3.0]
+num_frequencies: 16
+# Inputs are normalized logarithmic coordinates of order one, so an order-one bandwidth
+# is correct here (the baseline's scale=10 on raw p in [0, 11] aliased badly).
+fourier_scale: 1.5
+# z_* ~ r/2: the bulk depth that dominates a boundary pair of separation r.
+radial_mode: separation
+# Boundary translation invariance imposed structurally rather than learned.
+translation_invariant: true
+spectral_mixing: true
+branch_spectral: true
+head: inner_product
+n_heads: 4
+n_tokens: 8
+# Network models the anomalous correction on top of the exact free-theory power law.
+residual_mode: free
+dropout: 0.0
+readout_init_scale: 1.0e-4

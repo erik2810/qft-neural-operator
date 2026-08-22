@@ -1,0 +1,9 @@
+# @package _global_
+# Flagship pipeline: anomalous dimensions measured from real AdS2 bulk quadrature,
+# resummed into RG-consistent power laws, with the full physics-informed objective.
+defaults:
+  - override /physics: ads2_cft
+  - override /data: hybrid
+  - override /model: operator_transformer
+  - override /loss: physics_informed
+run_name: hybrid-quadrature

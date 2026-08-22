@@ -1,0 +1,20 @@
+weights:
+  data: 1.0
+  # Second-derivative term; dominates the gradient if over-weighted early, hence the ramp.
+  scaling: 0.01
+  rg: 0.01
+  warmup_epochs: 5
+data:
+  reduction: mse
+  huber_delta: 1.0
+scaling:
+  # power_law penalizes d^2 log W / d(log r)^2 and needs no labels at all;
+  # supervised matches a known Delta_eff; both sums the two.
+  mode: power_law
+  r_min: 1.0
+rg:
+  # jvp is exact forward-mode AD; it falls back to central differences automatically
+  # if a kernel has no forward-mode rule.
+  mode: jvp
+  step: 1.0e-3
+  normalize: true

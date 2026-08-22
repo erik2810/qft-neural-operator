@@ -1,0 +1,9 @@
+# Supervised term alone. Use with data=quadrature, whose fixed-order targets are not
+# RG-invariant, and as the ablation baseline for the physics-informed terms.
+defaults:
+  - physics_informed
+weights:
+  data: 1.0
+  scaling: 0.0
+  rg: 0.0
+  warmup_epochs: 0

@@ -1,0 +1,9 @@
+# @package _global_
+# Reproduce the published first-order Sine-Gordon setup, with the operator additionally
+# generalizing over polynomial and GP-drawn potentials.
+defaults:
+  - override /physics: ads2_reference
+  - override /data: resummed
+  - override /model: fourier_deeponet
+  - override /loss: physics_informed
+run_name: reference-sine-gordon

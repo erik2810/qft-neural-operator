@@ -1,0 +1,17 @@
+# @package _global_
+# Minimal end-to-end run for CI and local sanity checks.
+defaults:
+  - override /data: small
+  - override /trainer: fast_dev
+run_name: smoke
+figures: false
+save_checkpoint: false
+model:
+  latent_dim: 32
+  branch_width: 24
+  branch_blocks: 2
+  trunk_width: 48
+  trunk_layers: 2
+loss:
+  weights:
+    warmup_epochs: 1

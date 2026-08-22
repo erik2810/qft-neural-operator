@@ -1,0 +1,8 @@
+# Large renormalization scale, i.e. a bulk cutoff eps = 1/M well inside the smallest
+# boundary separation. Required by data=quadrature, where the near-boundary expansion
+# behind the contact integral needs eps << r_min.
+reference_scale: 1000.0
+epsilon: 0.0
+two_loop: 0.0
+log_scale_jitter: 0.75
+rk_steps: 32

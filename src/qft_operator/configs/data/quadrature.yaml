@@ -1,0 +1,36 @@
+# Strictly first order in the interaction, with the bulk contact diagram evaluated by
+# Gauss-Legendre quadrature over AdS2 and the cutoff identified holographically as
+# eps = 1/M. A fixed-order expression is NOT RG-invariant, so pair this with
+# loss=data_only (or loss.weights.rg=0) and rg=uv_cutoff, which puts eps well inside
+# r_min. Slower than the other modes: the reduced integral is tabulated once and
+# interpolated, but the table itself costs a full 2-D quadrature sweep.
+n_train: 2048
+n_val: 256
+n_test: 256
+n_phi: 64
+n_pairs: 32
+phi_max: 3.0
+r_min: 0.05
+r_max: 12.0
+midpoint_range: 4.0
+separation_jitter: 0.4
+target_mode: quadrature
+# Sine-Gordon and phi^4 anchor the analytic limits; polynomial and GP families are what
+# force the network to learn the functional V -> gamma rather than memorize two curves.
+family_weights:
+  free: 0.10
+  sine_gordon: 0.30
+  phi4: 0.15
+  polynomial: 0.15
+  gp_fourier: 0.30
+coupling_range: [0.005, 0.05]
+allow_negative_coupling: true
+xi_range: [0.4, 1.2]
+poly_degree: 6
+gp_features: 64
+gp_lengthscale_range: [0.4, 1.5]
+normalize_shapes: true
+standardize_inputs: true
+batch_size: 32
+num_workers: 0
+seed: 0

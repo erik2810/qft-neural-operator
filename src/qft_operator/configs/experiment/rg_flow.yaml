@@ -1,0 +1,12 @@
+# @package _global_
+# Relevant coupling: correlators acquire a running Delta_eff(r) and the Callan-Symanzik
+# constraint becomes a genuine (non-vacuous) statement about the learned operator.
+defaults:
+  - override /physics: ads2_cft
+  - override /rg: relevant
+  - override /data: resummed
+  - override /loss: physics_informed
+run_name: rg-flow
+loss:
+  weights:
+    rg: 0.05

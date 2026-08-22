@@ -1,0 +1,7 @@
+# Marginal bulk coupling: beta(lambda) = 0, so correlators are simply M-independent.
+# The RG loss is still non-trivial for the network, since log M is a trunk input.
+reference_scale: 1.0
+epsilon: 0.0
+two_loop: 0.0
+log_scale_jitter: 0.75
+rk_steps: 32

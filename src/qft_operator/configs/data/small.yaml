@@ -1,0 +1,7 @@
+# Small split for smoke tests and CI.
+defaults:
+  - resummed
+n_train: 256
+n_val: 64
+n_test: 64
+batch_size: 16

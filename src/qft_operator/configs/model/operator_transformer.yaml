@@ -1,0 +1,7 @@
+# Cross-attention head: each boundary query attends over the branch's field-space
+# tokens, so different separations can weight different regions of phi-space.
+defaults:
+  - fourier_deeponet
+head: attention
+n_heads: 8
+n_tokens: 16

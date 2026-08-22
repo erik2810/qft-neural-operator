@@ -1,0 +1,10 @@
+# Architecture ablation: plain MLP branch over the raw phi grid, no spectral
+# convolutions, no boundary context field, no structural translation invariance.
+# Closest analogue of the original single-file script, for measuring what the
+# operator-theoretic machinery actually buys.
+defaults:
+  - fourier_deeponet
+branch_spectral: false
+spectral_mixing: false
+translation_invariant: false
+residual_mode: none

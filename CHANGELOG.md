@@ -1,0 +1,102 @@
+# Changelog
+
+All notable changes to this project are documented here, following
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+## [0.2.0] - 2026-08-22
+
+### Added
+
+- **FastAPI inference server** (`qft_operator.app`): REST for the conformal background,
+  correlators and the regulated bulk integral, plus two binary WebSocket streams for the
+  per-frame paths. Configuration through pydantic-settings (`QFT_OPERATOR_*`).
+- **Interactive frontend** (`frontend/`): Vite + React + Three.js + Tailwind + KaTeX, with
+  three panels -- the AdS2 bulk and Witten contact diagram, the logarithmic residual and
+  $\gamma$ extraction, and RG invariance across five renormalization scales. Works
+  standalone or against the server, and says which in the header.
+- **Browser inference** (`frontend/src/lib/operator.ts`): a hand port of the
+  Fourier-DeepONet forward pass, including a 64-point real FFT, so the static build needs
+  no server.
+- **`qft-operator-export`**: writes `weights.bin` plus `manifest.json`, with the spectral
+  layers either kept in Fourier space (default) or baked into circular convolutions
+  (`--bake-spectral`) for consumers that cannot do an FFT.
+- **Cross-language parity fixture** (`tests/app/parity_fixture.py`): golden values from
+  Python that the TypeScript tests check against, with a test that fails when the
+  committed fixture goes stale.
+- `ConformalIntegrator.integrand_field` for tabulating the contact-integral density on a
+  display grid.
+- `FourierDeepONet` now exposes `branch_hidden`, `context_grid`, `context_width` and
+  `log_r_range`, which previously could not be reached from the config at all.
+
+### Fixed
+
+- **`feature_scale` was not recorded in checkpoints.** The dataset divides the branch
+  input by a global scalar; without it in the checkpoint, any inference outside the
+  training pipeline -- the server, the browser export -- silently fed inputs off by that
+  factor. Now stored in the checkpoint and the manifest, with
+  `QFT_OPERATOR_FEATURE_SCALE` and `--feature-scale` for older checkpoints.
+- **Checkpoints did not record their architecture.** The server and the export rebuilt
+  the network with default widths and only inferred `n_phi`, which is wrong for any run
+  that changed a width. `FourierDeepONet.hyperparameters` now travels with the weights.
+- `PhysicsConfig.BOUNDARY_DIM` was a dataclass field rather than a `ClassVar`, so it
+  appeared in the constructor signature and in equality comparisons.
+
+## [0.1.0] - 2026-08-22
+
+Initial release. Refactor of a single-file DeepONet prototype into a modular research
+codebase.
+
+### Added
+
+- **Physics layer** (`qft_operator.physics`), free of ML dependencies:
+  - `PhysicsConfig` with derived conformal data, BF-bound validation and an explicit
+    `convention_ratio` reporting the $c_\Delta$ normalization in use.
+  - `AdS2Geometry`: metric, isometries, bulk-to-boundary and bulk-to-bulk propagators;
+    autograd-aware ${}_2F_1$ via SciPy.
+  - `ConformalIntegrator`: Gauss–Legendre evaluation of the regulated contact Witten
+    integral, with a peak-tracking boundary map that resolves the two boundary-localized
+    spikes at small $z$. Reproduces $C_{\log} = 2L^2c_\Delta$ to ~1e-9 for $\Delta = 3/2$.
+  - `ReducedIntegralTable`: cached univariate table in $r/\epsilon$, ~500x faster than
+    direct quadrature at ~6e-6 relative error.
+  - `Potential` hierarchy written as $V = \lambda v(\phi)$, with exact
+    $\langle V''\rangle_\sigma$ for free, Sine-Gordon, $\phi^4$, polynomial and
+    Gaussian-process (random Fourier feature) families.
+  - `anomalous_dimension`: $\gamma[V] = \tfrac12\beta_1\beta_2\langle V''\rangle_\sigma
+    C_{\log}$, reducing exactly to the published Sine-Gordon result.
+  - `BetaFunction` with closed-form and RK4 flow maps.
+- **Models** (`qft_operator.models`): `FourierDeepONet` with spectral convolutions along
+  the field coordinate, a metric-aware positional encoding embedding
+  $\log\sqrt{g} = 2\log L - 2\log z_\star$, a `BoundaryContextField` for non-locality along
+  $p$, FiLM conditioning, and inner-product or cross-attention heads.
+- **Losses** (`qft_operator.losses`): log-space data term, AdS<sub>2</sub> boundary scaling
+  loss (label-free curvature form and supervised form), Callan–Symanzik RG-invariance loss
+  evaluated as a single forward-mode directional derivative, and a weighted composite with
+  a physics warm-up ramp.
+- **Data** (`qft_operator.data`): mixture sampler over five potential families and three
+  target modes (`resummed`, `quadrature`, `hybrid`).
+- **Training** (`qft_operator.training`): Lightning module with AdamW, warm-up-into-cosine
+  schedule and spectral weights excluded from decay; `SpectrumCallback` and
+  `FreeTheoryProbe`.
+- **Analysis / viz**: batched log-log fits with per-family reporting; correlator, log
+  residual, spectrum, potential gallery, RG flow and quadrature convergence figures.
+- **CLI / config**: three Hydra entry points and a packaged config tree with four
+  ready-made experiments.
+- **Tests**: 282 tests covering free-theory limits, boundary conformal symmetry, metric
+  invariance, propagator normalization, quadrature against closed form, Gaussian moments
+  against Gauss–Hermite, RG group properties, and `gradcheck` plus double-backward on the
+  spectral convolution.
+
+### Changed from the prototype
+
+- $\phi^4$ no longer uses the ad-hoc `gamma = lam * 0.4`; it gets the correct first-order
+  answer, which is *zero* for a normal-ordered vertex and non-zero only through the
+  tadpole $\sigma^2$.
+- The correlator is predicted in log space. Regressing $W$ directly under MSE put
+  essentially all the weight on the smallest separations, where $W$ is ~8 decades larger.
+- Boundary translation invariance is structural rather than learned; the trunk consumes
+  conformal invariants instead of raw $(p_1, p_2)$.
+- Fourier-feature bandwidth reduced from `scale=10` on raw unbounded coordinates to order
+  one on normalized logarithmic coordinates, which were aliasing badly.
+- Separations are sampled on a sorted log-uniform grid rather than as
+  `p2 = p1 + U(0, 3)`, covering the window uniformly in the variable the physics is linear
+  in and giving the scaling loss a well-conditioned stencil.

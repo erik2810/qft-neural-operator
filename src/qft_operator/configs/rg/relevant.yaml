@@ -1,0 +1,8 @@
+# Relevant coupling with a one-loop term: beta(lambda) = -eps*lambda + b*lambda^2.
+# Targets remain exactly RG-invariant because they are built from the coupling at the
+# physical scale 1/r, which the flow's group property makes independent of M.
+reference_scale: 1.0
+epsilon: 0.35
+two_loop: 2.0
+log_scale_jitter: 1.0
+rk_steps: 32

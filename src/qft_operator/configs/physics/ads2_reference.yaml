@@ -1,0 +1,21 @@
+# AdS2 background reproducing the published first-order Sine-Gordon result.
+#
+# Delta = 1/2 + sqrt(1/4 + m^2 L^2) = 3/2 for m^2 = 0.75, L = 1.
+#
+# c_delta = 0.159 is the normalization in which
+#     gamma = -lambda * (2 L^2 c_Delta / (2 Delta - 1)) * beta1 * beta2 * xi^2
+# is quoted. It is NOT the unit-normalized AdS2 value, which is
+#     c_Delta^CFT = Gamma(Delta) / (sqrt(pi) Gamma(Delta - 1/2)) = 1/2 at Delta = 3/2,
+# a factor of pi larger. The numerical bulk integrator uses the unit-normalized kernel,
+# so target_mode=hybrid/quadrature will differ from the analytic gamma by that factor.
+# Use physics=ads2_cft to make every pipeline agree exactly.
+L: 1.0
+m_sq: 0.75
+beta1: 1.0
+beta2: 1.0
+c_delta: 0.159
+# Renormalized coincident-point propagator sigma^2 = G_Delta(x, x). Zero is the
+# normal-ordering scheme of the reference result; a non-zero value switches on the
+# tadpole, which is what gives phi^4 a first-order anomalous dimension at all.
+sigma_sq: 0.0
+propagator_normalization: bulk_limit
