@@ -199,41 +199,140 @@ qft-operator-generate data=hybrid physics=ads2_cft output=data/hybrid.pt
 Every leaf is overridable: `loss.weights.rg=0.05`, `model=operator_transformer`,
 `model.residual_mode=exponent`, `physics.sigma_sq=0.4`.
 
-## A reference run
+## Results
 
-40 epochs on 4096 theories, CPU, ~30 minutes, full physics-informed objective
-(`+experiment=reference_sine_gordon physics=ads2_cft optimizer.lr=1.2e-3`). Test split,
-512 theories:
+All figures below are **three seeds**, 2048 theories, 25 epochs, CPU, unit-normalized
+conventions. Single runs on this problem are not reportable -- see the reproducibility
+note.
 
-```
-    relative L2 on log W        9.4e-04
-    gamma MAE                   1.3e-03
-    gamma relative MAE          0.059
-    spectrum R^2                0.72        (best epoch 0.76)
-```
+### What the operator architecture buys
 
-The learning rate matters more than it looks. Under unit-normalized conventions $\gamma$
-is a factor of $\pi$ larger than under the published normalization, and the 3e-3 that was
-fine there produced an instability spike and stalled at $R^2 \approx 0.11$; 1.2e-3 with
-twice the data reached 0.72.
-
-Per-family behaviour on the deployed checkpoint, read off the live page:
-
-| family | exact $\gamma$ | recovered | $\lvert\Delta\gamma\rvert$ |
+| arm | spectrum $R^2$ | $\gamma$ rel. error | $\log W$ rel. $L^2$ |
 | --- | --- | --- | --- |
-| Gaussian process | $2.73\times10^{-3}$ | $2.97\times10^{-3}$ | $2.3\times10^{-4}$ |
-| free | $0$ | $1.24\times10^{-4}$ | $1.2\times10^{-4}$ |
-| Sine-Gordon | $-1.280\times10^{-2}$ | $-1.144\times10^{-2}$ | $1.4\times10^{-3}$ |
-| polynomial | $-3.51\times10^{-3}$ | $-5.53\times10^{-3}$ | $2.0\times10^{-3}$ |
-| $\phi^4$ | $0$ | $7.89\times10^{-3}$ | $7.9\times10^{-3}$ |
+| Fourier-DeepONet | **0.900 ± 0.011** | **0.066 ± 0.004** | 6.4e-04 |
+| baseline DeepONet (`model=baseline_deeponet`) | 0.747 ± 0.075 | 0.332 ± 0.055 | 7.6e-03 |
 
-That the GP-drawn theories are the *best* recovered is the result worth having: the
-operator generalizes to potentials with no analytic form. The $\phi^4$ row is the honest
-failure, and a predictable one — a normal-ordered quartic has large $V$ but
-$\langle V''\rangle_0 = 12\lambda\langle\phi^2\rangle_0 = 0$, so the network has to learn
-that a conspicuous potential contributes exactly nothing at first order. It has not
-learned that yet. A non-zero `physics.sigma_sq`, which switches the tadpole on and gives
-$\phi^4$ a real signal, is the obvious next experiment.
+A 5× improvement in $\gamma$ and 11.8× in $\log W$; the $R^2$ gap is four times the
+largest within-arm spread and the two windows do not overlap. This ablates the *package* --
+the baseline config turns off the spectral branch, the boundary context field, structural
+translation invariance and the free-theory residual all at once. A component-wise ablation
+is now affordable but has not been run.
+
+### Reproducibility, and why it needed fixing
+
+Before the perturbative-regime cap, this problem could not be measured. Three seeds of an
+otherwise identical configuration:
+
+```
+    uncapped   R^2 = 0.770, 0.636, 0.745     spread 0.134     gamma rel. error 0.150
+    capped     R^2 = 0.895, 0.906, 0.899     spread 0.011     gamma rel. error 0.066
+```
+
+`max_gamma_ratio=0.05` buys **11.8× tighter reproducibility across seeds** and 8.9× less
+within-run wobble, while also improving the mean -- for the cost of discarding 1.5% of the
+data. The cause is in [Data pipeline](#data-pipeline): a handful of Gaussian-process draws
+reach $|\gamma|/\Delta \approx 0.19$, which a first-order label does not describe, and a
+quadratic loss lets them dominate it.
+
+How badly this misleads is worth stating plainly. Two runs whose labels agreed to 1e-7
+landed at $R^2 = 0.716$ and $0.902$ -- a gap that would have looked like a decisive result
+for whichever pipeline happened to draw the better seed.
+
+### The tadpole
+
+Switching on the coincident-point propagator (`physics.sigma_sq=0.4`) improves every family
+by ~12× and drives $R^2$ to 0.9999 with zero variance across the last ten epochs. That is
+not a $\phi^4$ fix, though it looks like one: `polynomial`'s signal is unchanged
+(2.648e-3 → 2.666e-3) while its relative error falls 27.9% → 2.26%. The smearing damps high
+frequencies by $e^{-\omega^2\sigma^2/2}$, flattening the same GP tail the cap targets.
+$\sigma^2 = 0$ remains the physically canonical normal-ordered scheme.
+
+## Interactive frontend
+
+Three panels, backed by a FastAPI server when one is running and by the browser alone when
+it is not:
+
+- **AdS₂ bulk and the Witten contact diagram.** The integrand
+  $\sqrt{g}\,K_\Delta K_\Delta$ over the Poincaré half-plane. Towards the boundary it
+  narrows into two ridges of width $\sim z$ at $p = \mp r/2$, each contributing $dz/z$ --
+  the logarithmic divergence made visible. Drag the cutoff line and watch another decade of
+  $\log(r/\epsilon)$ enter the integral, with the measured $C_{\log}$ converging on
+  $2L^2c_\Delta$ as $\epsilon \to 0$.
+- **Logarithmic residual and $\gamma$ extraction.** Divide out the free-theory power law
+  and what remains is a straight line of slope $2\gamma$. The operator's prediction is
+  overlaid on the closed-form truth.
+- **Renormalization-group invariance.** The same theory quoted at five scales $M$, with the
+  coupling transported along the flow. The curves coincide to machine zero (spread
+  ~9e-16 even with the coupling running by a factor of five); the control that ignores the
+  flow visibly does not.
+
+The window in the first panel is centred on the **separation**, not on the cutoff.
+Anchoring it at $z = \epsilon$ is the obvious choice and the wrong one -- the ridges are
+$O(\epsilon)$ wide there, far below one pixel, and the picture degenerates into a blob.
+
+### Running it
+
+```bash
+cd frontend && npm install && npm run dev
+```
+
+```bash
+uv run uvicorn qft_operator.app.main:app --port 8000
+```
+
+The page probes `/health` on load. With a server it uses the binary WebSocket protocol for
+both hot paths; without one it computes everything locally and says so in the header.
+
+To serve a trained checkpoint:
+
+```bash
+QFT_OPERATOR_CHECKPOINT=outputs/.../last.ckpt uv run uvicorn qft_operator.app.main:app
+```
+
+### The static export
+
+`aten::fft_rfft` has no ONNX lowering at opset 17, so the spectral layers cannot go through
+a standard runtime. Two ways out, and the export supports both:
+
+```bash
+uv run qft-operator-export --checkpoint outputs/.../best.ckpt --output frontend/public/operator
+```
+
+```bash
+uv run qft-operator-export --bake-spectral --output build/onnx-ready
+```
+
+The default keeps the learned weights in Fourier space and the browser does its own
+64-point transform. `--bake-spectral` instead exploits the fact that mode-truncated
+multiplication in Fourier space is *exactly* a circular convolution on a fixed grid
+(verified to ~1e-15), removing the FFT entirely -- which an ONNX or TFLite consumer needs,
+at the cost of size and, at these widths, roughly a thousandfold in arithmetic.
+
+The exported operator is not tracked in git; the page degrades gracefully without it and
+labels the prediction as unavailable.
+
+### Two implementations, one physics
+
+`frontend/src/lib/` re-implements the AdS₂ background, the bulk quadrature and the operator
+forward pass in TypeScript. That is where two implementations of one physics silently
+diverge, so the TypeScript side is pinned against golden values generated from Python:
+
+```bash
+uv run python -m tests.app.parity_fixture
+```
+
+```bash
+cd frontend && npm test
+```
+
+`tests/app/test_frontend_parity.py` fails if the committed fixture goes stale. Agreement is
+11-12 decimals for the closed-form physics, 8 for the quadrature, and float32-limited for
+the network.
+
+One thing deliberately does *not* match: the polynomial and Gaussian-process families use a
+different PRNG on each side, so the same seed means "another draw from the same
+distribution", not the same function. The page therefore builds $V(\phi)$ locally and sends
+it to the server, which evaluates the potential on screen rather than its own draw.
 
 ## A convention note worth reading
 
