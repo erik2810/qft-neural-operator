@@ -25,6 +25,11 @@ xi_range: [0.4, 1.2]
 poly_degree: 6
 gp_features: 64
 gp_lengthscale_range: [0.4, 1.5]
+# Reject draws whose |gamma| / (Delta beta1 beta2) exceeds this. The labels are first
+# order in the interaction, so a draw at |gamma|/Delta ~ 0.15 -- which the GP family
+# produces a few percent of the time -- is simply outside what the formula describes, and
+# being quadratic the loss lets those few samples dominate it. Costs ~1.5% of the mixture.
+max_gamma_ratio: 0.05
 normalize_shapes: true
 standardize_inputs: true
 batch_size: 32

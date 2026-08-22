@@ -116,6 +116,13 @@ class SpectrumReport:
             actually says whether the anomalous dimension has been resolved, since a
             model that predicts the free theory everywhere already achieves a small
             absolute error.
+        median_relative_error: The same normalization applied to the *median* absolute
+            error. Worth reporting alongside :attr:`r2`, because the $\\gamma$ distribution
+            is heavy-tailed -- Gaussian-process draws reach $|\\gamma|$ an order of
+            magnitude above the family mean -- and $R^2$, being built from squared error,
+            is dominated by those few extremes. A model can improve on the bulk of
+            theories while its $R^2$ drops, which is exactly what happens over the last
+            ten epochs of a typical run.
         per_family: ``family -> MAE`` breakdown, so generalization to GP-drawn theories
             can be read off separately from the analytic families.
     """
@@ -124,6 +131,7 @@ class SpectrumReport:
     rmse: float
     r2: float
     relative_mae: float
+    median_relative_error: float
     per_family: dict[str, float]
 
 
@@ -157,6 +165,8 @@ def summarize_spectrum(
     r2 = 1.0 - float(error.pow(2).sum()) / denominator if denominator > 0.0 else float("nan")
     scale = float(exact.std(correction=0))
     relative_mae = mae / scale if scale > 0.0 else float("nan")
+    median = float(error.median())
+    median_relative = median / scale if scale > 0.0 else float("nan")
 
     per_family: dict[str, float] = {}
     if family is not None and family_names:
@@ -165,5 +175,10 @@ def summarize_spectrum(
             if bool(mask.any()):
                 per_family[name] = float(error[mask].abs().mean())
     return SpectrumReport(
-        mae=mae, rmse=rmse, r2=r2, relative_mae=relative_mae, per_family=per_family
+        mae=mae,
+        rmse=rmse,
+        r2=r2,
+        relative_mae=relative_mae,
+        median_relative_error=median_relative,
+        per_family=per_family,
     )

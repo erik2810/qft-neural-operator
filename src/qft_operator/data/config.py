@@ -58,6 +58,17 @@ class DataConfig:
         gp_features: Random Fourier features per GP sample.
         gp_lengthscale_range: RBF lengthscale range; the spectral density is
             $\\omega \\sim \\mathcal{N}(0, \\ell^{-2})$.
+        max_gamma_ratio: Reject draws whose $|\\gamma| / (\\Delta\\beta_1\\beta_2)$ exceeds
+            this, or ``None`` to keep everything.
+
+            This is a physics constraint, not a loss trick. The labels are first order in
+            the interaction, which presumes $\\gamma \\ll \\Delta$; a draw with
+            $|\\gamma|/\\Delta = 0.19$ shifts the boundary exponent by nearly a fifth and
+            the first-order formula simply does not describe it. Such draws come
+            exclusively from the Gaussian-process family -- about 5% of its samples --
+            and because the loss is quadratic they dominate it, starving every other
+            family of gradient. At the default the cap discards ~1.5% of the mixture and
+            cuts the ratio of largest to median $|\\gamma|$ from ~70x to ~20x.
         normalize_shapes: Rescale polynomial and GP shape functions to unit RMS on the
             field grid, so that $\\lambda$ alone controls the interaction strength and
             $\\gamma$ stays comparable across families.
@@ -99,6 +110,7 @@ class DataConfig:
     poly_degree: int = 6
     gp_features: int = 64
     gp_lengthscale_range: tuple[float, float] = (0.4, 1.5)
+    max_gamma_ratio: float | None = 0.05
     normalize_shapes: bool = True
     standardize_inputs: bool = True
     batch_size: int = 32
@@ -132,6 +144,8 @@ class DataConfig:
             raise ValueError("family_weights must contain at least one positive weight")
         if self.target_mode not in ("resummed", "quadrature", "hybrid"):
             raise ValueError(f"unknown target_mode {self.target_mode!r}")
+        if self.max_gamma_ratio is not None and self.max_gamma_ratio <= 0.0:
+            raise ValueError(f"max_gamma_ratio must be positive, got {self.max_gamma_ratio}")
 
     @property
     def log_r_range(self) -> tuple[float, float]:

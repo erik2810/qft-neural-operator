@@ -225,3 +225,58 @@ def test_convention_mismatch_is_warned_about(physics: PhysicsConfig) -> None:
     cfg = DataConfig(n_phi=32, n_pairs=8, target_mode="hybrid")
     with pytest.warns(RuntimeWarning, match="unit-normalized CFT value"):
         AdS2CorrelatorDataset(4, physics=physics, data=cfg, seed=0)
+
+
+def test_gamma_ratio_cap_removes_the_non_perturbative_tail(physics_cft: PhysicsConfig) -> None:
+    # The labels are first order in the interaction, so they only mean anything while
+    # gamma << Delta. Uncapped, the GP family produces draws at |gamma|/Delta ~ 0.15 --
+    # a 15% shift in the boundary exponent -- and because the loss is quadratic those few
+    # samples dominate it.
+    cfg = DataConfig(n_phi=32, n_pairs=8)
+    uncapped = AdS2CorrelatorDataset(
+        800, physics=physics_cft, data=DataConfig(**{**cfg.__dict__, "max_gamma_ratio": None}),
+        seed=0,
+    )
+    capped = AdS2CorrelatorDataset(
+        800, physics=physics_cft, data=DataConfig(**{**cfg.__dict__, "max_gamma_ratio": 0.05}),
+        seed=0,
+    )
+    ceiling = 0.05 * physics_cft.free_dimension
+    assert float(uncapped.gamma.abs().max()) > ceiling
+    assert float(capped.gamma.abs().max()) <= ceiling
+    # A tail this thin costs almost nothing to remove.
+    assert capped.statistics.rejected > 0
+    assert capped.statistics.rejected < 0.05 * 800
+    # And it is what makes the distribution lopsided.
+    ratio = lambda d: float(d.gamma.abs().max() / d.gamma.abs().median())  # noqa: E731
+    assert ratio(capped) < 0.5 * ratio(uncapped)
+
+
+def test_only_the_gaussian_process_family_is_ever_rejected(physics_cft: PhysicsConfig) -> None:
+    # free and normal-ordered phi^4 have gamma == 0 identically; Sine-Gordon and the
+    # polynomials stay well inside the window at the shipped coupling range.
+    cfg = DataConfig(n_phi=32, n_pairs=8, max_gamma_ratio=0.05)
+    for family in ("free", "sine_gordon", "phi4", "polynomial"):
+        weights = dict.fromkeys([family], 1.0)
+        single = DataConfig(**{**cfg.__dict__, "family_weights": weights})
+        dataset = AdS2CorrelatorDataset(200, physics=physics_cft, data=single, seed=1)
+        assert dataset.statistics.rejected == 0, family
+
+
+def test_no_cap_keeps_every_draw(physics_cft: PhysicsConfig) -> None:
+    cfg = DataConfig(n_phi=32, n_pairs=8, max_gamma_ratio=None)
+    assert AdS2CorrelatorDataset(200, physics=physics_cft, data=cfg, seed=0).statistics.rejected == 0
+
+
+def test_an_unsatisfiable_cap_fails_rather_than_looping(physics_cft: PhysicsConfig) -> None:
+    cfg = DataConfig(
+        n_phi=32, n_pairs=8, max_gamma_ratio=1e-12,
+        family_weights={"sine_gordon": 1.0}, coupling_range=(0.04, 0.05),
+    )
+    with pytest.raises(RuntimeError, match="could not draw a theory"):
+        AdS2CorrelatorDataset(4, physics=physics_cft, data=cfg, seed=0)
+
+
+def test_gamma_ratio_cap_is_validated() -> None:
+    with pytest.raises(ValueError, match="max_gamma_ratio"):
+        DataConfig(max_gamma_ratio=0.0)

@@ -85,6 +85,36 @@ def test_summary_penalizes_a_constant_prediction() -> None:
     assert report.relative_mae == pytest.approx(0.866, abs=0.05)
 
 
+def test_median_error_and_r2_disagree_on_a_heavy_tail() -> None:
+    # The gamma distribution is heavy-tailed: GP draws reach |gamma| an order of magnitude
+    # above the family mean. R^2 is built from squared error and is therefore decided by
+    # those few extremes, so it can rank two models in the opposite order to their
+    # typical-case accuracy. Reporting both is the point.
+    exact = torch.cat([torch.full((90,), 0.01), torch.tensor([0.5, -0.6])]).to(torch.float64)
+
+    tail_only = exact.clone()
+    tail_only[-2:] = 0.0
+    tail_report = summarize_spectrum(tail_only, exact)
+
+    bulk_only = exact + 0.02
+    bulk_only[-2:] = exact[-2:]
+    bulk_report = summarize_spectrum(bulk_only, exact)
+
+    # By R^2 the bulk-only failure looks far better; by median error it is far worse.
+    assert bulk_report.r2 > tail_report.r2
+    assert bulk_report.median_relative_error > tail_report.median_relative_error
+    assert tail_report.median_relative_error == pytest.approx(0.0, abs=1e-12)
+
+
+def test_median_relative_error_is_robust_to_a_single_outlier() -> None:
+    exact = torch.linspace(-0.01, 0.01, 101, dtype=torch.float64)
+    predicted = exact.clone()
+    predicted[0] += 1.0  # one catastrophic miss
+    report = summarize_spectrum(predicted, exact)
+    assert report.median_relative_error == pytest.approx(0.0, abs=1e-12)
+    assert report.relative_mae > 1.0
+
+
 def test_summary_breaks_results_down_by_family() -> None:
     exact = torch.tensor([0.01, 0.02, 0.03, 0.04], dtype=torch.float64)
     predicted = exact + torch.tensor([0.0, 0.0, 0.1, 0.1], dtype=torch.float64)
@@ -103,3 +133,4 @@ def test_summary_handles_a_degenerate_reference() -> None:
     constant = torch.zeros(8, dtype=torch.float64)
     report = summarize_spectrum(constant, constant)
     assert report.r2 != report.r2  # NaN: no variance to explain
+    assert report.median_relative_error != report.median_relative_error

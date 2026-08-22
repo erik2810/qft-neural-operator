@@ -3,6 +3,27 @@
 All notable changes to this project are documented here, following
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+
+- `DataConfig.max_gamma_ratio` (default ``0.05``): rejects draws whose
+  $|\gamma| / (\Delta\beta_1\beta_2)$ exceeds the threshold, with the count surfaced as
+  `DatasetStatistics.rejected`.
+
+  The labels are first order in the interaction and presume $\gamma \ll \Delta$, but the
+  Gaussian-process family produced draws up to $|\gamma|/\Delta \approx 0.19$ -- a fifth
+  of the boundary exponent, which the first-order formula does not describe. Because the
+  loss is quadratic, those few samples dominated it. Measured over the shipped mixture,
+  the tail is *exclusively* GP (60 of 1149 draws) and the cap removes it at a cost of
+  ~1.5% of the data, cutting the ratio of largest to median $|\gamma|$ from ~70x to ~20x.
+- `SpectrumReport.median_relative_error`, logged as `spectrum/median_relative_error`.
+  $R^2$ is built from squared error and on this heavy-tailed target is decided by a
+  handful of extreme draws, so it can rank two models in the opposite order to their
+  typical-case accuracy -- which is exactly what happened over the last ten epochs of the
+  reference run, where $R^2$ fell from 0.756 to 0.716 while the mean absolute error
+  halved.
+
 ## [0.2.0] - 2026-08-22
 
 ### Added

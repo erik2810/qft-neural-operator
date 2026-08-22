@@ -37,6 +37,9 @@ class DatasetStatistics:
         gamma_std: Standard deviation of the anomalous dimension.
         gamma_abs_max: Largest $|\\gamma|$ in the split.
         family_counts: Number of samples drawn from each family.
+        rejected: Draws discarded for exceeding
+            :attr:`~qft_operator.data.config.DataConfig.max_gamma_ratio`, i.e. for lying
+            outside the regime where a first-order label means anything.
     """
 
     feature_scale: float
@@ -44,6 +47,7 @@ class DatasetStatistics:
     gamma_std: float
     gamma_abs_max: float
     family_counts: dict[str, int]
+    rejected: int = 0
 
 
 class AdS2CorrelatorDataset(Dataset[dict[str, Tensor]]):
@@ -86,6 +90,9 @@ class AdS2CorrelatorDataset(Dataset[dict[str, Tensor]]):
     """
 
     family_names = DataConfig.KNOWN_FAMILIES
+
+    #: Redraw budget per sample before the rejection filter is declared unsatisfiable.
+    _MAX_DRAW_ATTEMPTS = 256
 
     def __init__(
         self,
@@ -178,24 +185,41 @@ class AdS2CorrelatorDataset(Dataset[dict[str, Tensor]]):
         log_m_ref = self.rg_config.log_reference_scale
         jitter = self.rg_config.log_scale_jitter
 
-        for _ in range(self.n_samples):
-            potential = self.sampler.sample()
-            counts[potential.family] += 1
+        ceiling = (
+            None if cfg.max_gamma_ratio is None else cfg.max_gamma_ratio * phys.free_dimension
+        )
+        rejected = 0
 
+        for _ in range(self.n_samples):
             # Draw the scale at which this sample's coupling is quoted, then transport the
             # coupling there. Doing it in this order is what makes the pair (V, M) a
             # genuine RG orbit rather than two independent random numbers.
             offset = float(torch.rand((), generator=generator) * 2.0 - 1.0) * jitter
             log_m = log_m_ref + offset
-            if potential.coupling != 0.0 and not self.rg_config.is_marginal:
-                transported = self.beta.run(
-                    torch.tensor(potential.coupling, dtype=torch.float64),
-                    torch.tensor(offset, dtype=torch.float64),
-                )
-                potential.coupling = float(transported)
 
-            moment = potential.gaussian_second_moment(phys.sigma_sq)
-            gamma = 0.5 * phys.beta1 * phys.beta2 * moment * self._log_coefficient
+            # Redraw anything outside the perturbative window the first-order label
+            # assumes. Only the GP family ever trips this, at a few percent.
+            for _attempt in range(self._MAX_DRAW_ATTEMPTS):
+                potential = self.sampler.sample()
+                if potential.coupling != 0.0 and not self.rg_config.is_marginal:
+                    transported = self.beta.run(
+                        torch.tensor(potential.coupling, dtype=torch.float64),
+                        torch.tensor(offset, dtype=torch.float64),
+                    )
+                    potential.coupling = float(transported)
+
+                moment = potential.gaussian_second_moment(phys.sigma_sq)
+                gamma = 0.5 * phys.beta1 * phys.beta2 * moment * self._log_coefficient
+                if ceiling is None or abs(gamma) <= ceiling:
+                    break
+                rejected += 1
+            else:
+                raise RuntimeError(
+                    f"could not draw a theory with |gamma| <= {ceiling:.3g} in "
+                    f"{self._MAX_DRAW_ATTEMPTS} attempts; the coupling range and "
+                    f"max_gamma_ratio are inconsistent"
+                )
+            counts[potential.family] += 1
 
             radii = self.sampler.sample_separations()
             midpoint = self.sampler.sample_midpoint()
@@ -247,6 +271,7 @@ class AdS2CorrelatorDataset(Dataset[dict[str, Tensor]]):
             gamma_std=float(self.gamma.std(correction=0)),
             gamma_abs_max=float(self.gamma.abs().max()),
             family_counts=counts,
+            rejected=rejected,
         )
 
     # ------------------------------------------------------------------ #

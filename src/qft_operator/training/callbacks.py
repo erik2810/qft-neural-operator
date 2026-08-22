@@ -82,6 +82,7 @@ class SpectrumCallback(Callback):  # type: ignore[misc]
             "spectrum/rmse": report.rmse,
             "spectrum/r2": report.r2,
             "spectrum/relative_mae": report.relative_mae,
+            "spectrum/median_relative_error": report.median_relative_error,
         }
         metrics.update({f"spectrum/mae_{k}": v for k, v in report.per_family.items()})
         pl_module.log_dict(metrics, sync_dist=True)
