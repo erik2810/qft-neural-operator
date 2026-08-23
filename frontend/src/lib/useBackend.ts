@@ -18,14 +18,36 @@ import { parseFrame, type BulkFrame, type CorrelatorFrame, FrameKind } from "./p
 
 export type BackendStatus = "checking" | "online" | "offline";
 
-/** Probe `/health` once on mount. */
+/**
+ * Whether to look for a backend at all.
+ *
+ * A static export has no server by construction, so probing there is guaranteed to 404 --
+ * a console error on every load that reports nothing the page does not already know.
+ * Default the probe on in dev, where Vite proxies to localhost:8000, and off in a
+ * production build; set `VITE_BACKEND_PROBE=on` to build a bundle FastAPI will serve.
+ */
+const PROBE_BACKEND =
+  (import.meta.env.VITE_BACKEND_PROBE ?? (import.meta.env.DEV ? "on" : "off")) === "on";
+
+/**
+ * Resolve a backend path against the deployment base.
+ *
+ * `BASE_URL` is "/" in dev and "/qft-neural-operator/" in the static build. Requesting a
+ * root-absolute "/health" from a page served under a subpath asks the wrong origin root.
+ */
+function backendUrl(path: string): string {
+  return `${import.meta.env.BASE_URL}${path.replace(/^\//, "")}`;
+}
+
+/** Probe the backend's health endpoint once on mount. */
 export function useBackendStatus(): BackendStatus {
-  const [status, setStatus] = useState<BackendStatus>("checking");
+  const [status, setStatus] = useState<BackendStatus>(PROBE_BACKEND ? "checking" : "offline");
   useEffect(() => {
+    if (!PROBE_BACKEND) return;
     let cancelled = false;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 2000);
-    fetch("/health", { signal: controller.signal })
+    fetch(backendUrl("/health"), { signal: controller.signal })
       .then((response) => {
         if (!cancelled) setStatus(response.ok ? "online" : "offline");
       })
@@ -43,7 +65,7 @@ export function useBackendStatus(): BackendStatus {
 
 function socketUrl(path: string): string {
   const scheme = location.protocol === "https:" ? "wss" : "ws";
-  return `${scheme}://${location.host}${path}`;
+  return `${scheme}://${location.host}${backendUrl(path)}`;
 }
 
 interface PacedSocket<TRequest, TFrame> {

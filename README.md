@@ -362,6 +362,11 @@ uv run uvicorn qft_operator.app.main:app --port 8000
 The page probes `/health` on load. With a server it uses the binary WebSocket protocol for
 both hot paths; without one it computes everything locally and says so in the header.
 
+The probe is a progressive enhancement, not a requirement, so it defaults **on** in dev and
+**off** in a production build: a static export has no server by construction, and probing
+there only logs a 404 that reports nothing the page has not already worked out. Build with
+`VITE_BACKEND_PROBE=on` for a bundle FastAPI will serve itself.
+
 To serve a trained checkpoint:
 
 ```bash
