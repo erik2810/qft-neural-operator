@@ -49,7 +49,7 @@ jobs:
       - name: Parity fixture is current
         run: uv run pytest tests/app/test_frontend_parity.py -q
       - name: Lint and type-check
-        run: npm --prefix frontend run lint && npm --prefix frontend exec tsc -b
+        run: npm --prefix frontend run lint && npm --prefix frontend run typecheck
       - name: Test
         run: npm --prefix frontend test
       - name: Build
