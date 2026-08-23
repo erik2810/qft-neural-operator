@@ -130,6 +130,19 @@ All notable changes to this project are documented here, following
   edges, which the monotonicity of the flow makes sufficient.
 - Restored the "Interactive frontend" README section, lost to a splice that replaced
   everything between two headings when a third had been inserted between them.
+- The parity-fixture check compared `json.dumps` output, making it a test of the host's
+  libm as much as of the fixture. At $\Delta = 3/2$ the normalisation
+  $c_\Delta = \Gamma(3/2) / (\sqrt\pi\,\Gamma(1))$ is analytically exactly $1/2$, but macOS
+  returns `0.49999999999999994` and glibc returns `0.5`. Both are right to within one ulp;
+  only the decimal serialisations differ, so CI told a Linux runner that a fixture
+  generated on macOS was stale. Numbers now compare at `rel=1e-12` -- eight orders tighter
+  than the tolerance the TypeScript tests use -- while structure still compares exactly.
+- The health probe and the WebSocket URLs were root-absolute, so under a base-path
+  deployment they addressed the origin root: the probe requested `/health` rather than
+  `/qft-neural-operator/health`. Both now resolve through `BASE_URL`, and the probe is
+  skipped entirely in a production build, where a static export has no backend to find.
+- `npm exec tsc -b` relied on npm forwarding a bare `-b`; npm parses the flag itself, so
+  tsc printed its help and exited non-zero. The type-check is now a named package script.
 
 ## [0.2.0] - 2026-08-22
 

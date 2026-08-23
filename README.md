@@ -1,5 +1,8 @@
 # qft-neural-operator
 
+**[Live demo →](https://erik2810.github.io/qft-neural-operator/)** — three WebGPU surfaces
+with the operator running client-side; no server, no install.
+
 Neural operators for the map from a Quantum Field Theory action to its boundary
 observables in Euclidean AdS<sub>2</sub>:
 
