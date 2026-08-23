@@ -9,6 +9,7 @@ values generated here -- and this test fails when those values go stale.
 from __future__ import annotations
 
 import json
+from typing import Any
 
 import pytest
 import torch
@@ -25,14 +26,41 @@ def committed() -> dict:
     return json.loads(path.read_text())
 
 
+def assert_numerically_equal(fresh: Any, stored: Any, where: str = "") -> None:
+    """Compare two fixture branches structurally, with a tolerance on the numbers.
+
+    Byte equality is the wrong test here. ``math.gamma`` and ``sqrt`` differ in the last
+    ULP between platforms, so a fixture generated on macOS will not serialize identically
+    on a Linux runner even when nothing has changed -- which fails CI while telling the
+    author their fixture is stale. What actually matters is that the values still agree to
+    far tighter than the tolerance the TypeScript tests compare against.
+    """
+    assert type(fresh) is type(stored), f"type changed at {where or 'root'}"
+    if isinstance(fresh, dict):
+        assert set(fresh) == set(stored), f"keys changed at {where or 'root'}"
+        for key in fresh:
+            assert_numerically_equal(fresh[key], stored[key], f"{where}.{key}")
+    elif isinstance(fresh, list):
+        assert len(fresh) == len(stored), f"length changed at {where}"
+        for index, (a, b) in enumerate(zip(fresh, stored, strict=True)):
+            assert_numerically_equal(a, b, f"{where}[{index}]")
+    elif isinstance(fresh, float):
+        assert fresh == pytest.approx(stored, rel=1e-12, abs=1e-15), f"value changed at {where}"
+    else:
+        assert fresh == stored, f"value changed at {where}"
+
+
 def test_fixture_is_current(committed: dict) -> None:
     regenerated = build_fixture()
     assert set(regenerated) == set(committed)
     for key in ("background", "gamma_function", "gammas", "correlators", "bulk"):
-        assert json.dumps(regenerated[key]) == json.dumps(committed[key]), (
-            f"the {key!r} section is stale -- regenerate with "
-            "`uv run python -m tests.app.parity_fixture`"
-        )
+        try:
+            assert_numerically_equal(regenerated[key], committed[key], key)
+        except AssertionError as error:
+            raise AssertionError(
+                f"the {key!r} section is stale ({error}) -- regenerate with "
+                "`uv run python -m tests.app.parity_fixture`"
+            ) from error
 
 
 def test_operator_cases_are_current(committed: dict) -> None:
@@ -62,6 +90,8 @@ def test_fixture_covers_only_rng_free_families(committed: dict) -> None:
 
 
 def test_regeneration_is_deterministic(tmp_path) -> None:
+    # Byte equality is the right test here: both runs happen on the same machine, so any
+    # difference is genuine non-determinism rather than a platform's libm.
     first = json.loads(write_fixture(tmp_path / "a").read_text())
     second = json.loads(write_fixture(tmp_path / "b").read_text())
     assert json.dumps(first) == json.dumps(second)
