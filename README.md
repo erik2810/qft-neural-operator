@@ -480,10 +480,32 @@ The physics tests are the point of the suite, not an afterthought:
 
 ## Relation to `DiffQFT`
 
-`DiffQFT/diffqft/geometry.py` and `propagators.py` cover the same AdS<sub>2</sub> metric
-and hypergeometric propagator. The implementations here are typed, validated and
-autograd-tested versions of the same objects; if the two projects stay adjacent, that
-pair is the obvious candidate for a shared package.
+`DiffQFT/diffqft/geometry.py` and `propagators.py` implement the same AdS₂ objects, and
+where they overlap the two agree to machine precision:
+
+```
+    chordal distance u    1.4511278195  vs  1.4511278195   (diff 1.1e-12)
+    Delta from m^2        1.5000000000  vs  1.5000000000
+    bulk-to-bulk G        0.0469503228  vs  0.0469503228   (ratio 1.000000)
+```
+
+So the duplication is real rather than superficial, and consolidating is a rename job, not
+a reconciliation. Three things would need care:
+
+- **Argument order differs.** `DiffQFT` takes `(x1, z1, x2, z2)`, this package takes
+  `(z1, p1, z2, p2)`. Silently compatible signatures with swapped meaning is the worst
+  possible failure mode for a merge.
+- **`bulk_boundary_kernel` is not the same function.** `DiffQFT`'s is the unnormalized
+  Poisson kernel $Lz/(z^2 + \Delta x^2)$; this package's `bulk_to_boundary` is
+  $c_\Delta\left[z/(z^2+\Delta x^2)\right]^{\Delta}$, which integrates to one. Both are
+  defensible; they are not interchangeable.
+- **Everything else here is a superset** — $\sqrt{g}$, the isometries, the invariant
+  measure, `c_delta_cft`, full typing and validation — and is covered by
+  `tests/physics/test_geometry.py`.
+
+Nothing in `DiffQFT` has been touched. The natural shape would be a small shared package
+carrying the metric, the isometries and the hypergeometric propagator, with both projects
+depending on it.
 
 ## License
 
