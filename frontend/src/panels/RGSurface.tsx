@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Formula } from "../components/Formula";
-import { Panel, Readout } from "../components/Panel";
+import { Control, Figure, MarginValue, Sym } from "../components/Figure";
 import { SurfaceStage, type SurfaceLayer } from "../components/SurfaceStage";
 import {
   anomalousDimension,
@@ -26,9 +26,11 @@ function share(a: ScalarField, b: ScalarField): [ScalarField, ScalarField] {
 export function RGSurface({
   theory,
   background,
+  number,
 }: {
   theory: Theory;
   background: Background;
+  number: number;
 }) {
   const [epsilon, setEpsilon] = useState(0.35);
   const free = freeDimension(background);
@@ -73,58 +75,52 @@ export function RGSurface({
   );
 
   return (
-    <Panel
-      title="Renormalization-group invariance"
-      subtitle={
+    <Figure
+      number={number}
+      title="A gauge choice, seen as a flat direction"
+      caption={
         <>
           <Formula tex="\log W + 2\Delta\beta_1\beta_2\log r" /> over{" "}
           <Formula tex="(\log r,\ \log M)" />. The renormalization scale is a gauge choice,
-          so the physical statement is that <em>the surface has no slope along it</em>:
-          carry the coupling along the flow and the amber sheet comes out ruled — sight
-          down the <Formula tex="M" /> axis and it is a straight line. The teal overlay
-          changes <Formula tex="M" /> and leaves the coupling where it was; it visibly
-          tilts. That is the whole content of{" "}
+          so the physical statement is that <em>the surface has no slope along it</em>: carry
+          the coupling along the flow and the amber sheet comes out ruled — sight down the{" "}
+          <Formula tex="M" /> axis and it is a straight line. The teal overlay changes{" "}
+          <Formula tex="M" /> and leaves the coupling where it was; it visibly tilts. That is
+          the whole content of{" "}
           <Formula tex="\left(M\partial_M + \beta(\lambda)\partial_\lambda\right)W = 0" />.
         </>
       }
-      aside={
-        <span className="font-mono text-[0.65rem] tracking-wide text-[var(--dim)] uppercase">
-          amber ruled · teal tilts
-        </span>
-      }
-    >
-      <SurfaceStage layers={layers} height={320} />
-      <div className="mt-1 flex justify-between font-mono text-[0.65rem] text-[var(--dim)]">
-        <span>log r ∈ [{LOG_R[0].toFixed(1)}, {LOG_R[1].toFixed(1)}]</span>
-        <span>log M ∈ [{LOG_M[0].toFixed(1)}, {LOG_M[1].toFixed(1)}] — the gauge direction</span>
-      </div>
-
-      <label className="mt-4 flex flex-col gap-1 text-xs text-[var(--dim)]">
-        <span>
-          classical deficit <Formula tex="\epsilon" /> in{" "}
-          <Formula tex="\beta(\lambda) = -\epsilon\lambda" /> = {epsilon.toFixed(2)}
-          {epsilon === 0 && " — marginal: nothing runs, so nothing can be got wrong"}
-        </span>
-        <input
-          type="range"
+      controls={
+        <Control
+          label={<>classical deficit <Sym>ε</Sym> in <Sym>β(λ) = −ελ</Sym></>}
+          value={epsilon}
           min={0}
           max={0.6}
           step={0.01}
-          value={epsilon}
-          onChange={(e) => setEpsilon(Number(e.target.value))}
+          onChange={setEpsilon}
+          hint={epsilon === 0 ? "marginal: nothing runs, so nothing can be got wrong" : undefined}
         />
-      </label>
-
-      <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Readout label="γ at the reference scale" value={gamma.toExponential(3)} />
-        <Readout label="Δ_eff at r = 1" value={(free - gamma).toFixed(6)} />
-        <Readout
-          label="tilt of the naive sheet"
-          value={spread.toExponential(2)}
-          hint="range along M"
-        />
-        <Readout label="tilt of the transported sheet" value="0" hint="exactly, by construction" />
-      </div>
-    </Panel>
+      }
+      margin={
+        <>
+          <MarginValue
+            label="tilt, transported"
+            value="0"
+            note="exactly, for any β"
+            tone="exact"
+          />
+          <MarginValue
+            label="tilt, coupling left alone"
+            value={spread.toExponential(2)}
+            note="range along the log M axis"
+            tone="predicted"
+          />
+          <MarginValue label={<><Sym>γ</Sym> at the reference scale</>} value={gamma.toExponential(3)} />
+          <MarginValue label={<><Sym>Δ_eff</Sym> at <Sym>r = 1</Sym></>} value={(free - gamma).toFixed(6)} />
+        </>
+      }
+    >
+      <SurfaceStage layers={layers} height={380} />
+    </Figure>
   );
 }

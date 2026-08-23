@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
+import { Control, Figure, MarginValue, Sym } from "../components/Figure";
 import { Formula } from "../components/Formula";
-import { Panel, Readout } from "../components/Panel";
 import { SurfaceStage, type SurfaceLayer } from "../components/SurfaceStage";
 import { contactIntegral, measuredLogCoefficient } from "../lib/bulk";
 import { cDeltaCft, logCoefficient, type Background } from "../lib/physics";
@@ -11,18 +11,16 @@ const GRID = 256;
 /**
  * Decades of z shown below and above the separation.
  *
- * Bounded by resolution, not by taste. The ridges are O(z) wide, so a window reaching
- * three decades below r puts them twenty times under a grid cell and the surface flattens
- * into a featureless mound -- the same failure the flat heatmap had when it was anchored
- * at the cutoff. One and a half decades keeps the narrowest ridge above the sample spacing
- * while still showing it form.
+ * Bounded by resolution, not taste. The ridges are O(z) wide, so a window reaching three
+ * decades below r puts them twenty times under a grid cell and the surface flattens into a
+ * featureless mound. One and a half decades keeps the narrowest ridge above the sample
+ * spacing while still showing it form.
  */
 const BELOW = 1.5;
 const ABOVE = 0.7;
-/** Dynamic range retained under the peak; the density spans far more than a surface can. */
 const FLOOR_DECADES = 3;
 
-export function BulkSurface({ background }: { background: Background }) {
+export function BulkSurface({ background, number }: { background: Background; number: number }) {
   const [logEps, setLogEps] = useState(-4);
   const [r, setR] = useState(1);
   const [backend, setBackend] = useState<"webgpu" | "webgl" | null>(null);
@@ -36,13 +34,9 @@ export function BulkSurface({ background }: { background: Background }) {
     const half = 0.5 * r;
     const c = cDeltaCft(d);
     const prefactor = Math.log((background.L ** 2 * c * c) / background.normalizationFactor);
-    // Height is log(z * density), not log(density).
-    //
-    // The vertical axis is log z and the bulk measure is dz/z = d(log z), so with the
-    // extra factor of z the volume under this surface *is* the contact integral. It also
-    // makes the divergence legible: each ridge keeps a constant area per decade while its
-    // width falls as z, so it must grow taller toward the boundary. The logarithm is then
-    // literally a sum over decades of equal-area slices.
+    // Height is log(z * density), not log(density). The vertical axis is log z and the bulk
+    // measure is dz/z, so with the extra factor of z the volume under this surface *is* the
+    // contact integral -- and each ridge must hold its area as it narrows, so it climbs.
     const raw = sampleField(GRID, GRID, [-width, width], [logZMin, logZMax], (p, logZ) => {
       const zz = Math.exp(2 * logZ);
       return (
@@ -61,10 +55,8 @@ export function BulkSurface({ background }: { background: Background }) {
     [field],
   );
 
-  // Where the cutoff falls inside the displayed z window, as a fraction.
   const cutoffAt = (logEps - logZMin) / (logZMax - logZMin);
-  const marker =
-    cutoffAt >= 0 && cutoffAt <= 1 ? ({ axis: "y", at: cutoffAt } as const) : null;
+  const marker = cutoffAt >= 0 && cutoffAt <= 1 ? ({ axis: "y", at: cutoffAt } as const) : null;
 
   const integral = useMemo(
     () => contactIntegral(r, Math.exp(logEps), background),
@@ -77,80 +69,71 @@ export function BulkSurface({ background }: { background: Background }) {
   const analytic = logCoefficient(background);
 
   return (
-    <Panel
-      title="The bulk integrand"
-      subtitle={
+    <Figure
+      number={number}
+      title="The divergence has a shape"
+      caption={
         <>
           <Formula tex="z\sqrt{g}\,K_\Delta(x;p_1)K_\Delta(x;p_2)" /> as relief over the
           Poincaré half-plane, banded one colour per decade. The vertical axis is{" "}
           <Formula tex="\log z" /> and the measure is <Formula tex="dz/z" />, so the volume
           under this surface <em>is</em> the contact integral. Toward the boundary — the lit
           rail — the two ridges at <Formula tex="p=\mp r/2" /> narrow as{" "}
-          <Formula tex="z" /> while holding their area, so they climb: the divergence is a
-          sum over decades of equal-area slices. The plane is the cutoff{" "}
-          <Formula tex="\epsilon" />; only what lies beyond it is counted.
+          <Formula tex="z" /> while holding their area, so they climb. The plane is the
+          cutoff <Formula tex="\epsilon" />; only what lies beyond it is counted. Drag to
+          orbit.
         </>
       }
-      aside={
-        <span className="font-mono text-[0.65rem] tracking-wide text-[var(--dim)] uppercase">
-          {backend ?? "…"}
-        </span>
+      controls={
+        <div className="grid gap-x-10 gap-y-1 sm:grid-cols-2">
+          <Control
+            label={<>cutoff log <Sym>ε</Sym></>}
+            value={logEps}
+            min={-8}
+            max={-0.5}
+            step={0.05}
+            onChange={setLogEps}
+          />
+          <Control
+            label={<>separation <Sym>r</Sym></>}
+            value={r}
+            min={0.2}
+            max={4}
+            step={0.02}
+            onChange={setR}
+          />
+        </div>
+      }
+      margin={
+        <>
+          <MarginValue
+            label={<>measured <Sym>C_log</Sym></>}
+            value={measured.toFixed(6)}
+            note="from quadrature, in the browser"
+            tone="exact"
+          />
+          <MarginValue label={<>analytic <Sym>2L²c_Δ</Sym></>} value={analytic.toFixed(6)} />
+          <MarginValue
+            label="relative error"
+            value={Math.abs(measured / analytic - 1).toExponential(1)}
+            note="O(ε) — pull the cutoff down and watch it fall"
+          />
+          <MarginValue label={<>integral over <Sym>z &gt; ε</Sym></>} value={integral.toFixed(5)} />
+          <MarginValue
+            label="renderer"
+            value={backend ?? "…"}
+            note={`p ∈ [−${width.toFixed(1)}, ${width.toFixed(1)}] · z ∈ [${Math.exp(logZMin).toExponential(1)}, ${Math.exp(logZMax).toExponential(1)}]`}
+          />
+        </>
       }
     >
       <SurfaceStage
         layers={layers}
         boundary="yMax"
         marker={marker}
-        height={340}
+        height={380}
         onBackend={setBackend}
       />
-      <div className="mt-1 flex justify-between font-mono text-[0.65rem] text-[var(--dim)]">
-        <span>p ∈ [{(-width).toFixed(2)}, {width.toFixed(2)}]</span>
-        <span>
-          z ∈ [{Math.exp(logZMin).toExponential(1)}, {Math.exp(logZMax).toExponential(1)}] ·
-          boundary at the lit edge
-        </span>
-      </div>
-
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <label className="flex flex-col gap-1 text-xs text-[var(--dim)]">
-          <span>
-            cutoff <Formula tex="\log\epsilon" /> = {logEps.toFixed(2)}
-          </span>
-          <input
-            type="range"
-            min={-8}
-            max={-0.5}
-            step={0.05}
-            value={logEps}
-            onChange={(e) => setLogEps(Number(e.target.value))}
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-xs text-[var(--dim)]">
-          <span>
-            separation <Formula tex="r" /> = {r.toFixed(2)}
-          </span>
-          <input
-            type="range"
-            min={0.2}
-            max={4}
-            step={0.02}
-            value={r}
-            onChange={(e) => setR(Number(e.target.value))}
-          />
-        </label>
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Readout label="∫ over z > ε" value={integral.toFixed(5)} />
-        <Readout label="measured C_log" value={measured.toFixed(6)} hint="dĨ / d log(1/ε)" />
-        <Readout label="analytic 2L²c_Δ" value={analytic.toFixed(6)} />
-        <Readout
-          label="relative error"
-          value={Math.abs(measured / analytic - 1).toExponential(1)}
-          hint="O(ε) — drag ε down"
-        />
-      </div>
-    </Panel>
+    </Figure>
   );
 }

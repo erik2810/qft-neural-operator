@@ -2,119 +2,221 @@
 @import "katex/dist/katex.min.css";
 
 /*
- * Palette and type.
+ * A live preprint.
  *
- * The display face is KaTeX's Computer Modern, already loaded for the equations. Setting
- * the headings in it costs nothing and makes prose and mathematics one voice -- the page
- * reads as a live paper rather than a dashboard wearing formulas. Body and data use system
- * stacks so there is no external font request at all; the boldness is spent in one place.
+ * The artifact is a piece of research, so the page is set as one: warm paper, a measured
+ * text column, figures that break out wider than the prose, and a margin that carries the
+ * numbers. The one departure from a printed paper is that the margin is *live* -- those
+ * readouts tick as the figures are dragged, which is the whole reason this is a page and
+ * not a PDF.
  *
- * Colour is cold instrument slate with a single hot accent. Amber is the AdS boundary and
- * every exact quantity; teal is every predicted or unphysical one. Those two carry meaning
- * throughout, so nothing else is allowed to be saturated.
+ * Three type roles, each with a reason. Crimson Pro sets the prose, because a serif is what
+ * a paper reads like. Atkinson Hyperlegible -- engineered for legibility by the Braille
+ * Institute -- carries every number, label and control, because this is an instrument and
+ * the figures are the thing that must not be misread. KaTeX's Computer Modern sets the
+ * mathematics, and pairs with Crimson Pro without argument.
+ *
+ * Colour is semantic before it is decorative: amber is the AdS boundary and every exact
+ * quantity, teal is every predicted or unphysical one. Each has two tiers, because the value
+ * that reads on a dark figure fails contrast on paper and vice versa.
  */
 :root {
-  --void: #0a0e14;
-  --slate: #101823;
-  --panel: #16202b;
-  --rule: #223245;
-  --steel: #3d5a6c;
-  --dim: #5b7285;
-  --foam: #c9d6df;
-  --bright: #e8f0f5;
-  --sodium: #ffb347;
-  --ion: #4fd1c5;
+  --paper: #fbf9f5;
+  --paper-sunk: #f2eee6;
+  --rule: #ddd6ca;
+  --rule-strong: #c4b9a8;
 
-  --display: "KaTeX_Main", "Iowan Old Style", Georgia, serif;
-  --body: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, monospace;
+  --ink: #16130f;
+  --ink-soft: #554e45;
+  --ink-faint: #6e6559;
 
-  color-scheme: dark;
+  /* The ground shared by every figure inset and the WebGPU canvas behind it. */
+  --figure: #0f1319;
+  --figure-rule: #232c38;
+  --figure-ink: #c9d6df;
+  --figure-faint: #6b7c8c;
+
+  /* Exact / reference. Bright tier renders on the figure, deep tier on paper. */
+  --exact: #ffb347;
+  --exact-ink: #96530a;
+  /* Predicted / unphysical. */
+  --predicted: #4fd1c5;
+  --predicted-ink: #0c6b74;
+
+  --serif: "Crimson Pro", "Iowan Old Style", Georgia, serif;
+  --sans: "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif;
+  --math: "KaTeX_Main", var(--serif);
+
+  --measure: 34rem;
+  --margin-col: 15rem;
+
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  background: var(--void);
-  color: var(--foam);
-  font-family: var(--body);
-  font-size: 14px;
-  line-height: 1.6;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 19px;
+  line-height: 1.62;
+  font-synthesis-weight: none;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 .katex {
-  font-size: 1em;
+  font-size: 1.02em;
 }
 
-/* Headings and the eyebrow labels carry the display face. */
-.display {
-  font-family: var(--display);
-  letter-spacing: 0.01em;
+/* ---- type roles ------------------------------------------------------- */
+
+.prose {
+  max-width: var(--measure);
 }
 
-.eyebrow {
-  font-family: var(--mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--dim);
+.prose p + p {
+  margin-top: 0.85em;
 }
 
-.numeric {
-  font-family: var(--mono);
-  font-variant-numeric: tabular-nums;
+.lede {
+  font-size: 1.12rem;
+  line-height: 1.58;
+  color: var(--ink-soft);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--serif);
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  margin: 0;
+  text-wrap: balance;
 }
 
 /*
- * Sliders. The default control is the single most dated element on a page like this, and
- * these are the only things the reader touches, so they get the amber.
+ * Section numbers hang in the gutter rather than sitting inline, so the heading text keeps
+ * a single flush left edge down the whole page. They are numbers because the argument is
+ * sequential -- each figure depends on the one before it.
+ */
+.section-number {
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--exact-ink);
+}
+
+.label {
+  font-family: var(--sans);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/*
+ * Symbols opt out of the uppercase.
+ *
+ * text-transform does not respect mathematics: it maps lowercase Greek onto capitals, so an
+ * uppercased label silently rewrites gamma as Gamma, lambda as Lambda and epsilon as E --
+ * every one of which means something else. Any symbol inside a label has to be wrapped.
+ */
+.label .sym {
+  text-transform: none;
+  font-family: var(--math);
+  font-size: 1.12em;
+  letter-spacing: 0;
+}
+
+.numeric {
+  font-family: var(--sans);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.caption {
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+/* ---- controls --------------------------------------------------------- */
+
+/*
+ * Sliders are the only thing on the page anyone touches, so they carry the accent and a
+ * 44px hit area regardless of the 2px track they appear to be.
  */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
+  width: 100%;
+  height: 44px;
+  background: transparent;
+  cursor: ew-resize;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
   height: 2px;
-  background: var(--rule);
-  border-radius: 1px;
-  outline: none;
+  background: var(--rule-strong);
+  border-radius: 2px;
+}
+
+input[type="range"]::-moz-range-track {
+  height: 2px;
+  background: var(--rule-strong);
+  border-radius: 2px;
 }
 
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 13px;
-  height: 13px;
+  width: 14px;
+  height: 14px;
+  margin-top: -6px;
   border-radius: 50%;
-  background: var(--sodium);
-  border: 2px solid var(--void);
-  cursor: grab;
-  transition: transform 120ms ease;
-}
-
-input[type="range"]::-webkit-slider-thumb:hover {
-  transform: scale(1.18);
+  background: var(--exact-ink);
+  border: 3px solid var(--paper);
+  box-shadow: 0 0 0 1px var(--rule-strong);
+  transition: transform 140ms ease;
 }
 
 input[type="range"]::-moz-range-thumb {
-  width: 13px;
-  height: 13px;
-  border: 2px solid var(--void);
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  background: var(--sodium);
-  cursor: grab;
+  background: var(--exact-ink);
+  border: 3px solid var(--paper);
+  box-shadow: 0 0 0 1px var(--rule-strong);
 }
 
-input[type="range"]:disabled::-webkit-slider-thumb {
-  background: var(--steel);
+input[type="range"]:hover::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+
+input[type="range"]:disabled {
   cursor: not-allowed;
 }
 
-input[type="range"]:focus-visible::-webkit-slider-thumb {
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sodium) 40%, transparent);
+input[type="range"]:disabled::-webkit-slider-thumb {
+  background: var(--rule-strong);
 }
 
-:where(button, input, a):focus-visible {
-  outline: 2px solid var(--sodium);
-  outline-offset: 2px;
+input[type="range"]:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--exact-ink) 35%, transparent);
+}
+
+:where(button, input, a, summary):focus-visible {
+  outline: 2px solid var(--exact-ink);
+  outline-offset: 3px;
+  border-radius: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Formula } from "../components/Formula";
-import { Panel, Readout } from "../components/Panel";
+import { Figure, MarginValue, Sym } from "../components/Figure";
 import { SurfaceStage, type SurfaceLayer } from "../components/SurfaceStage";
 import {
   anomalousDimension,
@@ -42,6 +42,7 @@ export function ResidualSurface({
   background,
   operator,
   prediction,
+  number,
 }: {
   theory: Theory;
   background: Background;
@@ -55,6 +56,7 @@ export function ResidualSurface({
    * and the panel says which it is showing.
    */
   prediction: Prediction | null;
+  number: number;
 }) {
   const free = freeDimension(background);
   // Destructured so the effect dependencies name the fields that actually matter; passing
@@ -165,52 +167,47 @@ export function ResidualSurface({
   }, [exact, predicted]);
 
   return (
-    <Panel
-      title="γ as a functional of the potential"
-      subtitle={
+    <Figure
+      number={number}
+      title="The operator learned a functional, not a curve"
+      caption={
         <>
           <Formula tex="\log W + 2\Delta\beta_1\beta_2\log r" /> over{" "}
           <Formula tex="(\log r,\ \lambda)" />, with the free-theory power law divided out.
           Along <Formula tex="\log r" /> the tilt <em>is</em> <Formula tex="2\gamma" />;
           across <Formula tex="\lambda" /> it fans out linearly, because{" "}
           <Formula tex="\gamma=\tfrac12\beta_1\beta_2\langle V''\rangle_\sigma C_{\log}" /> is
-          linear in the coupling. The amber plane is that closed form. The teal sheet is the
-          operator, evaluated at twenty couplings: where it lifts off the plane is where it
-          has not learned the functional.
+          linear in the coupling. Amber is that closed form. Teal is the operator, evaluated
+          at twenty couplings: where the sheet lifts off the plane is where it has not
+          learned the functional.
         </>
       }
-      aside={
-        <span className="font-mono text-[0.65rem] tracking-wide text-[var(--dim)] uppercase">
-          {prediction?.source === "server" ? "readout: pytorch" : "readout: browser"}
-        </span>
+      margin={
+        <>
+          <MarginValue label={<><Sym>γ</Sym> exact</>} value={gammaExact.toExponential(3)} tone="exact" />
+          <MarginValue
+            label={<><Sym>γ</Sym> recovered</>}
+            value={reported === null ? "—" : reported.toExponential(3)}
+            note={prediction?.source === "server" ? "full-precision PyTorch" : "operator, in the browser"}
+            tone="predicted"
+          />
+          <MarginValue
+            label={<><Sym>|Δγ|</Sym></>}
+            value={reported === null ? "—" : Math.abs(reported - gammaExact).toExponential(2)}
+          />
+          <MarginValue
+            label={<Sym>Δ_eff</Sym>}
+            value={(free - gammaExact).toFixed(6)}
+            note={`free Δβ₁β₂ = ${free.toFixed(3)}`}
+          />
+        </>
       }
     >
       <SurfaceStage
         layers={layers}
-        height={320}
+        height={380}
         camera={{ position: [2.4, 1.5, 2.0], target: [0, 0.35, 0] }}
       />
-      <div className="mt-1 flex justify-between font-mono text-[0.65rem] text-[var(--dim)]">
-        <span>log r ∈ [{LOG_R[0].toFixed(1)}, {LOG_R[1].toFixed(1)}]</span>
-        <span>λ ∈ [{LAMBDA[0]}, {LAMBDA[1]}]</span>
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Readout label="γ exact" value={gammaExact.toExponential(3)} />
-        <Readout
-          label="γ recovered"
-          value={reported === null ? "—" : reported.toExponential(3)}
-        />
-        <Readout
-          label="|Δγ|"
-          value={reported === null ? "—" : Math.abs(reported - gammaExact).toExponential(2)}
-        />
-        <Readout
-          label="Δ_eff"
-          value={(free - gammaExact).toFixed(6)}
-          hint={`free Δβ₁β₂ = ${free.toFixed(3)}`}
-        />
-      </div>
-    </Panel>
+    </Figure>
   );
 }

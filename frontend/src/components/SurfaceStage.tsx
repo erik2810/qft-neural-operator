@@ -189,10 +189,10 @@ export function SurfaceStage({
     <div className="relative" style={{ height }}>
       <div
         ref={containerRef}
-        className="h-full w-full overflow-hidden rounded border border-[var(--rule)] bg-[var(--void)]"
+        className="h-full w-full bg-[var(--figure)]"
       />
       {status !== "ready" && (
-        <div className="absolute inset-0 grid place-items-center text-xs text-[var(--dim)]">
+        <div className="caption absolute inset-0 grid place-items-center text-[var(--figure-faint)]">
           {status === "booting" ? "starting renderer…" : "3D unavailable in this browser"}
         </div>
       )}

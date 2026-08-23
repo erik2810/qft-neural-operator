@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Formula } from "./components/Formula";
-import { Panel, Readout } from "./components/Panel";
+import { MarginValue, Sym } from "./components/Figure";
 import { TheoryControls } from "./components/TheoryControls";
 import { BulkSurface } from "./panels/BulkSurface";
 import { ResidualSurface } from "./panels/ResidualSurface";
@@ -15,7 +15,6 @@ import {
   cDeltaCft,
   defaultBackground,
   defaultTheory,
-  freeDimension,
   logCoefficient,
   logRGrid,
   type Background,
@@ -106,79 +105,105 @@ export default function App() {
     operatorState.status === "ready" ? operatorState.operator.manifest.trained : false;
 
   return (
-    <div className="mx-auto max-w-[62rem] px-5 py-10">
-      <header className="mb-8">
-        <p className="eyebrow">Euclidean AdS₂ · holographic renormalization</p>
-        <h1 className="display mt-3 text-[2rem] leading-[1.15] text-[var(--bright)]">
-          An action goes in. A boundary correlator comes out.
+    <div className="mx-auto max-w-[62rem] px-6 pb-24 pt-14 sm:px-10">
+      <header className="border-b-2 border-[var(--ink)] pb-8">
+        <p className="label">Euclidean AdS₂ · holographic renormalization</p>
+        <h1 className="mt-4 text-[clamp(2.1rem,5.2vw,3.15rem)] leading-[1.08]">
+          An action goes in.
+          <br />
+          A boundary correlator comes out.
         </h1>
-        <p className="mt-4 max-w-[62ch] text-[0.9rem] leading-relaxed text-[var(--dim)]">
-          A neural operator learning{" "}
-          <Formula tex="V(\phi) \mapsto W(p_1,p_2)=\langle V_{\beta_1}(p_1)V_{\beta_2}(p_2)\rangle_{\rm conn}" />{" "}
-          in the Poincaré patch <Formula tex="ds^2=(L^2/z^2)(dz^2+dp^2)" />. The metric
-          blows up at the boundary, bulk integrals diverge logarithmically there, and the
-          logarithms reorganize into an anomalous dimension{" "}
-          <Formula tex="\Delta_{\rm eff}=\Delta\beta_1\beta_2-\gamma" />. Each panel below
-          is that story as a surface: height is the quantity, and the shape is the argument.
-        </p>
-        <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[var(--rule)] pt-4">
-          <span className="eyebrow">
-            {backendOnline
-              ? "backend online · live pytorch inference"
-              : backendStatus === "checking"
-                ? "probing backend"
-                : "standalone · computed in the browser"}
-          </span>
-          {operatorState.status === "ready" && (
-            <span className="eyebrow" style={{ color: trained ? undefined : "var(--sodium)" }}>
-              {trained ? "operator · trained checkpoint" : "operator · untrained weights"}
-            </span>
-          )}
-          {operatorState.status === "unavailable" && (
-            <span className="eyebrow" style={{ color: "var(--sodium)" }}>
-              no exported operator · exact physics only
-            </span>
-          )}
+        <div className="mt-7 grid gap-x-10 gap-y-6 lg:grid-cols-[minmax(0,1fr)_var(--margin-col)]">
+          <div className="prose">
+            <p className="lede">
+              A neural operator learning{" "}
+              <Formula tex="V(\phi) \mapsto W(p_1,p_2)=\langle V_{\beta_1}(p_1)V_{\beta_2}(p_2)\rangle_{\rm conn}" />{" "}
+              in the Poincaré patch <Formula tex="ds^2=(L^2/z^2)(dz^2+dp^2)" />. The metric
+              blows up at the boundary, bulk integrals diverge logarithmically there, and
+              the logarithms reorganize into an anomalous dimension{" "}
+              <Formula tex="\Delta_{\rm eff}=\Delta\beta_1\beta_2-\gamma" />.
+            </p>
+            <p className="mt-4 text-[var(--ink-soft)]">
+              Three figures follow, and each is a surface rather than a plot. Height is the
+              quantity; the shape is the argument. Everything amber is closed form and
+              computed here in the browser. Everything teal is predicted or unphysical.
+            </p>
+          </div>
+          <aside className="border-t border-[var(--rule)] pt-3 lg:border-t-2 lg:border-t-[var(--ink)]">
+            <MarginValue label={<Sym>Δ</Sym>} value={background.delta.toFixed(4)} note="Δ(Δ−1) = m²L²" />
+            <MarginValue label={<Sym>c_Δ</Sym>} value={background.cDelta.toFixed(5)} />
+            <MarginValue label={<Sym>C_log</Sym>} value={logCoefficient(background).toFixed(5)} />
+            <MarginValue
+              label="running"
+              value={
+                backendOnline
+                  ? "server"
+                  : backendStatus === "checking"
+                    ? "…"
+                    : "browser"
+              }
+              note={
+                operatorState.status === "ready"
+                  ? trained
+                    ? "trained checkpoint loaded"
+                    : "untrained weights — predictions sit on the free theory"
+                  : operatorState.status === "unavailable"
+                    ? "no exported operator — exact physics only"
+                    : "loading the operator"
+              }
+            />
+          </aside>
         </div>
       </header>
 
-      <div className="grid gap-5">
-        <Panel
-          title="Theory"
-          subtitle={
-            <>
-              The anomalous dimension is a <em>functional</em> of the potential,{" "}
-              <Formula tex="\gamma[V]=\tfrac12\beta_1\beta_2\langle V''\rangle_\sigma C_{\log}" />.
-              That is why a Gaussian-process draw with no analytic form carries a label as
-              exact as Sine-Gordon’s.
-            </>
-          }
-        >
+      <section className="mt-12">
+        <h2 className="text-[1.35rem] leading-snug">
+          <span className="section-number mr-2 align-[0.18em]">§ 1</span>
+          Pick a theory
+        </h2>
+        <div className="prose caption mt-3 text-[0.88rem]">
+          The anomalous dimension is a <em>functional</em> of the potential,{" "}
+          <Formula tex="\gamma[V]=\tfrac12\beta_1\beta_2\langle V''\rangle_\sigma C_{\log}" />.
+          That is why a Gaussian-process draw with no closed form carries a label as exact as
+          Sine-Gordon’s — and why the operator has something to learn beyond two named curves.
+        </div>
+        <div className="mt-6">
           <TheoryControls theory={theory} onChange={setTheory} />
-          <div className="mt-5 grid grid-cols-2 gap-5 sm:grid-cols-4">
-            <Readout label="Δ" value={background.delta.toFixed(4)} hint="Δ(Δ−)=m²L²" />
-            <Readout label="c_Δ" value={background.cDelta.toFixed(5)} />
-            <Readout label="C_log" value={logCoefficient(background).toFixed(5)} />
-            <Readout label="Δβ₁β₂" value={freeDimension(background).toFixed(4)} />
+        </div>
+      </section>
+
+      <BulkSurface background={background} number={1} />
+      <ResidualSurface
+        theory={theory}
+        background={background}
+        operator={operatorState.status === "ready" ? operatorState.operator : null}
+        prediction={prediction}
+        number={2}
+      />
+      <RGSurface theory={theory} background={background} number={3} />
+
+      <footer className="mt-20 border-t-2 border-[var(--ink)] pt-6">
+        <div className="grid gap-x-10 gap-y-6 lg:grid-cols-[minmax(0,1fr)_var(--margin-col)]">
+          <div className="prose caption">
+            <p>
+              The operator runs client-side from an exported Fourier-DeepONet. Its spectral
+              layers keep their weights in Fourier space and the 64-point transform runs
+              here, because <span className="numeric">aten::fft_rfft</span> has no ONNX
+              lowering. Parity with PyTorch is pinned by tests on both sides: eleven to twelve
+              decimals for the closed-form physics, eight for the bulk quadrature, and
+              float32-limited for the network.
+            </p>
+            <p>
+              Attach the FastAPI server and the same page switches to full-precision PyTorch
+              inference over a binary WebSocket, without changing what it shows.
+            </p>
           </div>
-        </Panel>
-
-        <BulkSurface background={background} />
-        <ResidualSurface
-          theory={theory}
-          background={background}
-          operator={operatorState.status === "ready" ? operatorState.operator : null}
-          prediction={prediction}
-        />
-        <RGSurface theory={theory} background={background} />
-      </div>
-
-      <footer className="mt-10 border-t border-[var(--rule)] pt-5 text-[0.75rem] leading-relaxed text-[var(--dim)]">
-        Every amber surface is closed form, computed in the browser. Teal is predicted or
-        unphysical. The operator runs client-side from an exported Fourier-DeepONet: its
-        spectral layers keep their weights in Fourier space and the 64-point transform runs
-        here, since <code className="numeric">aten::fft_rfft</code> has no ONNX lowering.
-        Parity with PyTorch is pinned by tests on both sides.
+          <aside className="border-t border-[var(--rule)] pt-3 lg:border-t-2 lg:border-t-[var(--ink)]">
+            <MarginValue label="source" value="erik2810/qft-neural-operator" />
+            <MarginValue label="renderer" value="WebGPU · Three.js TSL" />
+            <MarginValue label="tests" value="331 Python · 48 TypeScript" />
+          </aside>
+        </div>
       </footer>
     </div>
   );

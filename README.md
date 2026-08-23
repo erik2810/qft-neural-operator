@@ -320,8 +320,21 @@ it is a straight line. The teal overlay changes $M$ without running the coupling
 visibly tilts. Five overlapping curves became one surface whose flatness you check by eye.
 
 Amber is the boundary and every exact quantity; teal is every predicted or unphysical one.
-Headings are set in KaTeX's Computer Modern, already loaded for the equations, so prose and
-mathematics share one voice and the page costs no external font request.
+
+The page is set as a live preprint rather than a dashboard, because that is what the
+artifact is: warm paper, a measured text column, figures that break out wider than the
+prose, and a margin carrying the numbers. The one thing a printed paper cannot do is keep
+that margin current — those readouts recompute while the figures are being dragged.
+
+Three type roles, each with a reason. Crimson Pro sets the prose. Atkinson Hyperlegible —
+engineered for legibility by the Braille Institute — carries every number, label and
+control, because the figures are the thing that must not be misread. KaTeX's Computer
+Modern sets the mathematics and pairs with Crimson Pro without argument.
+
+One trap worth knowing if you touch the labels: they are uppercased, and `text-transform`
+does not respect mathematics. It maps lowercase Greek onto capitals, silently rewriting
+$\gamma$ as $\Gamma$, $\lambda$ as $\Lambda$ and $\epsilon$ as E — each of which means
+something else. Symbols inside a label must be wrapped in `<Sym>`.
 
 ### Two notes for anyone extending the surfaces
 

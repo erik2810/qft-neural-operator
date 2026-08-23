@@ -31,9 +31,14 @@ All notable changes to this project are documented here, following
   over $(p, \log z)$ with the measure folded into the height, $\log W$ over
   $(\log r, \lambda)$ where the tilt is $2\gamma$, and $\log W$ over $(\log r, \log M)$
   where RG invariance is visible as a ruled surface with no slope along $M$.
-- Design pass: Computer Modern headings borrowed from the already-loaded KaTeX fonts, an
-  amber/teal semantic palette where amber is exact and teal is predicted or unphysical, and
-  log-decade contour banding in place of a smooth colour ramp.
+- The page is set as a live preprint: warm paper, a measured text column, numbered figures
+  that break out wider than the prose, and a margin whose readouts recompute as the figures
+  are dragged. Crimson Pro for prose, Atkinson Hyperlegible for every number and control,
+  KaTeX's Computer Modern for the mathematics.
+- Semantic colour throughout: amber is the AdS boundary and every exact quantity, teal is
+  every predicted or unphysical one. Each has a bright tier for the dark figures and a deep
+  tier for paper, since a value that reads on one fails contrast on the other.
+- Log-decade contour banding in place of a smooth colour ramp.
 - `qft-operator-export --dtype float16`: halves the weight blob (4.79 → 2.40 MiB) at a cost
   of 2.4% of the model's own error. The browser runtime decodes binary16 by hand, since
   `Float16Array` is too new to rely on.
@@ -73,9 +78,14 @@ All notable changes to this project are documented here, following
   over $(p, \log z)$ with the measure folded into the height, $\log W$ over
   $(\log r, \lambda)$ where the tilt is $2\gamma$, and $\log W$ over $(\log r, \log M)$
   where RG invariance is visible as a ruled surface with no slope along $M$.
-- Design pass: Computer Modern headings borrowed from the already-loaded KaTeX fonts, an
-  amber/teal semantic palette where amber is exact and teal is predicted or unphysical, and
-  log-decade contour banding in place of a smooth colour ramp.
+- The page is set as a live preprint: warm paper, a measured text column, numbered figures
+  that break out wider than the prose, and a margin whose readouts recompute as the figures
+  are dragged. Crimson Pro for prose, Atkinson Hyperlegible for every number and control,
+  KaTeX's Computer Modern for the mathematics.
+- Semantic colour throughout: amber is the AdS boundary and every exact quantity, teal is
+  every predicted or unphysical one. Each has a bright tier for the dark figures and a deep
+  tier for paper, since a value that reads on one fails contrast on the other.
+- Log-decade contour banding in place of a smooth colour ramp.
 - `qft-operator-export --dtype float16`: halves the weight blob (4.79 → 2.40 MiB) at a cost
   of 2.4% of the model's own error. The browser runtime decodes binary16 by hand, since
   `Float16Array` is too new to rely on.
