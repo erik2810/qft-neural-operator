@@ -1,17 +1,127 @@
 @import "tailwindcss";
 @import "katex/dist/katex.min.css";
 
+/*
+ * Palette and type.
+ *
+ * The display face is KaTeX's Computer Modern, already loaded for the equations. Setting
+ * the headings in it costs nothing and makes prose and mathematics one voice -- the page
+ * reads as a live paper rather than a dashboard wearing formulas. Body and data use system
+ * stacks so there is no external font request at all; the boldness is spent in one place.
+ *
+ * Colour is cold instrument slate with a single hot accent. Amber is the AdS boundary and
+ * every exact quantity; teal is every predicted or unphysical one. Those two carry meaning
+ * throughout, so nothing else is allowed to be saturated.
+ */
 :root {
+  --void: #0a0e14;
+  --slate: #101823;
+  --panel: #16202b;
+  --rule: #223245;
+  --steel: #3d5a6c;
+  --dim: #5b7285;
+  --foam: #c9d6df;
+  --bright: #e8f0f5;
+  --sodium: #ffb347;
+  --ion: #4fd1c5;
+
+  --display: "KaTeX_Main", "Iowan Old Style", Georgia, serif;
+  --body: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, monospace;
+
   color-scheme: dark;
 }
 
 body {
   margin: 0;
-  background: #0b0f14;
-  color: #dfe6ee;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--void);
+  color: var(--foam);
+  font-family: var(--body);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
 .katex {
   font-size: 1em;
+}
+
+/* Headings and the eyebrow labels carry the display face. */
+.display {
+  font-family: var(--display);
+  letter-spacing: 0.01em;
+}
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.numeric {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Sliders. The default control is the single most dated element on a page like this, and
+ * these are the only things the reader touches, so they get the amber.
+ */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 2px;
+  background: var(--rule);
+  border-radius: 1px;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--sodium);
+  border: 2px solid var(--void);
+  cursor: grab;
+  transition: transform 120ms ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.18);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
+  border: 2px solid var(--void);
+  border-radius: 50%;
+  background: var(--sodium);
+  cursor: grab;
+}
+
+input[type="range"]:disabled::-webkit-slider-thumb {
+  background: var(--steel);
+  cursor: not-allowed;
+}
+
+input[type="range"]:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sodium) 40%, transparent);
+}
+
+:where(button, input, a):focus-visible {
+  outline: 2px solid var(--sodium);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -26,6 +26,14 @@ All notable changes to this project are documented here, following
 
 ### Added
 
+- The frontend is now three WebGPU surfaces written in TSL, replacing the flat heatmap and
+  the two SVG plots. Each panel is a scalar field over a physical plane: the bulk integrand
+  over $(p, \log z)$ with the measure folded into the height, $\log W$ over
+  $(\log r, \lambda)$ where the tilt is $2\gamma$, and $\log W$ over $(\log r, \log M)$
+  where RG invariance is visible as a ruled surface with no slope along $M$.
+- Design pass: Computer Modern headings borrowed from the already-loaded KaTeX fonts, an
+  amber/teal semantic palette where amber is exact and teal is predicted or unphysical, and
+  log-decade contour banding in place of a smooth colour ramp.
 - `qft-operator-export --dtype float16`: halves the weight blob (4.79 → 2.40 MiB) at a cost
   of 2.4% of the model's own error. The browser runtime decodes binary16 by hand, since
   `Float16Array` is too new to rely on.
@@ -60,6 +68,14 @@ All notable changes to this project are documented here, following
 
 ### Added
 
+- The frontend is now three WebGPU surfaces written in TSL, replacing the flat heatmap and
+  the two SVG plots. Each panel is a scalar field over a physical plane: the bulk integrand
+  over $(p, \log z)$ with the measure folded into the height, $\log W$ over
+  $(\log r, \lambda)$ where the tilt is $2\gamma$, and $\log W$ over $(\log r, \log M)$
+  where RG invariance is visible as a ruled surface with no slope along $M$.
+- Design pass: Computer Modern headings borrowed from the already-loaded KaTeX fonts, an
+  amber/teal semantic palette where amber is exact and teal is predicted or unphysical, and
+  log-decade contour banding in place of a smooth colour ramp.
 - `qft-operator-export --dtype float16`: halves the weight blob (4.79 → 2.40 MiB) at a cost
   of 2.4% of the model's own error. The browser runtime decodes binary16 by hand, since
   `Float16Array` is too new to rely on.

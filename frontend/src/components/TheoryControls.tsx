@@ -23,7 +23,7 @@ export function TheoryControls({
 
   return (
     <div className="grid gap-4 sm:grid-cols-2">
-      <label className="flex flex-col gap-1 text-xs text-slate-400 sm:col-span-2">
+      <label className="flex flex-col gap-1 text-xs text-[var(--dim)] sm:col-span-2">
         <span>interaction</span>
         <div className="flex flex-wrap gap-1.5">
           {FAMILIES.map((family) => (
@@ -33,8 +33,8 @@ export function TheoryControls({
               onClick={() => set({ family: family.value })}
               className={`rounded border px-2 py-1 text-xs transition-colors ${
                 theory.family === family.value
-                  ? "border-sky-500 bg-sky-500/15 text-sky-200"
-                  : "border-slate-700 text-slate-400 hover:border-slate-500"
+                  ? "border-[var(--sodium)] bg-[color-mix(in_srgb,var(--sodium)_14%,transparent)] text-[var(--sodium)]"
+                  : "border-[var(--rule)] text-[var(--dim)] hover:border-[var(--steel)]"
               }`}
             >
               {family.label}
@@ -42,13 +42,13 @@ export function TheoryControls({
           ))}
         </div>
         {active && (
-          <span className="mt-1 text-slate-500">
+          <span className="mt-1 text-[var(--dim)]">
             <Formula tex={`V(\\phi)=${active.tex}`} />
           </span>
         )}
       </label>
 
-      <label className="flex flex-col gap-1 text-xs text-slate-400">
+      <label className="flex flex-col gap-1 text-xs text-[var(--dim)]">
         <span>
           coupling <Formula tex="\lambda" /> = {theory.coupling.toFixed(4)}
         </span>
@@ -60,11 +60,11 @@ export function TheoryControls({
           value={theory.coupling}
           disabled={theory.family === "free"}
           onChange={(e) => set({ coupling: Number(e.target.value) })}
-          className="accent-sky-400 disabled:opacity-40"
+          className="disabled:opacity-40"
         />
       </label>
 
-      <label className="flex flex-col gap-1 text-xs text-slate-400">
+      <label className="flex flex-col gap-1 text-xs text-[var(--dim)]">
         <span>
           vertex exponent <Formula tex="\xi" /> = {theory.xi.toFixed(2)}
         </span>
@@ -76,12 +76,12 @@ export function TheoryControls({
           value={theory.xi}
           disabled={theory.family !== "sine_gordon"}
           onChange={(e) => set({ xi: Number(e.target.value) })}
-          className="accent-sky-400 disabled:opacity-40"
+          className="disabled:opacity-40"
         />
       </label>
 
       {seeded && (
-        <label className="flex flex-col gap-1 text-xs text-slate-400 sm:col-span-2">
+        <label className="flex flex-col gap-1 text-xs text-[var(--dim)] sm:col-span-2">
           <span>draw = {theory.seed}</span>
           <input
             type="range"
@@ -90,9 +90,9 @@ export function TheoryControls({
             step={1}
             value={theory.seed}
             onChange={(e) => set({ seed: Number(e.target.value) })}
-            className="accent-sky-400"
+            className=""
           />
-          <span className="text-[0.65rem] text-slate-500">
+          <span className="text-[0.65rem] text-[var(--dim)]">
             A fresh draw from the same distribution the operator was trained on — nothing
             about it is Sine-Gordon or φ⁴.
           </span>

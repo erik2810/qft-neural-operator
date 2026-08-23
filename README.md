@@ -295,26 +295,46 @@ $\sigma^2 = 0$ remains the physically canonical normal-ordered scheme.
 
 ## Interactive frontend
 
-Three panels, backed by a FastAPI server when one is running and by the browser alone when
-it is not:
+Three WebGPU surfaces, written in TSL. Every panel is the same object — a scalar field
+over a physical plane, rendered as shaded relief and banded one colour per decade — because
+the physics here is the counting of decades, and one visual language beats three unrelated
+3D treatments.
 
-- **AdS₂ bulk and the Witten contact diagram.** The integrand
-  $\sqrt{g}\,K_\Delta K_\Delta$ over the Poincaré half-plane. Towards the boundary it
-  narrows into two ridges of width $\sim z$ at $p = \mp r/2$, each contributing $dz/z$ --
-  the logarithmic divergence made visible. Drag the cutoff line and watch another decade of
-  $\log(r/\epsilon)$ enter the integral, with the measured $C_{\log}$ converging on
-  $2L^2c_\Delta$ as $\epsilon \to 0$.
-- **Logarithmic residual and $\gamma$ extraction.** Divide out the free-theory power law
-  and what remains is a straight line of slope $2\gamma$. The operator's prediction is
-  overlaid on the closed-form truth.
-- **Renormalization-group invariance.** The same theory quoted at five scales $M$, with the
-  coupling transported along the flow. The curves coincide to machine zero (spread
-  ~9e-16 even with the coupling running by a factor of five); the control that ignores the
-  flow visibly does not.
+**The bulk integrand.** Height is
+$\log\!\left(z\sqrt{g}\,K_\Delta K_\Delta\right)$ over $(p, \log z)$. The factor of $z$ is
+not cosmetic: the measure is $dz/z = d\log z$ and the vertical axis *is* $\log z$, so the
+volume under this surface is the contact integral. Toward the boundary — the lit rail — the
+two ridges at $p = \mp r/2$ narrow as $z$ while holding their area, so they climb, and the
+divergence becomes a sum over decades of equal-area slices. A plane marks the cutoff.
 
-The window in the first panel is centred on the **separation**, not on the cutoff.
-Anchoring it at $z = \epsilon$ is the obvious choice and the wrong one -- the ridges are
-$O(\epsilon)$ wide there, far below one pixel, and the picture degenerates into a blob.
+**$\gamma$ as a functional.** $\log W$ with the free power law divided out, over
+$(\log r, \lambda)$. The tilt along $\log r$ *is* $2\gamma$; across $\lambda$ it fans out
+linearly, because $\gamma$ is linear in the coupling. The amber plane is the closed form,
+the teal sheet is the operator at twenty couplings, and where the sheet lifts off the plane
+is where it has not learned the functional.
+
+**RG invariance.** $\log W$ over $(\log r, \log M)$. The renormalization scale is a gauge
+choice, so the physical claim is that *the surface has no slope along it*: carry the
+coupling along the flow and the amber sheet comes out ruled — sight down the $M$ axis and
+it is a straight line. The teal overlay changes $M$ without running the coupling and
+visibly tilts. Five overlapping curves became one surface whose flatness you check by eye.
+
+Amber is the boundary and every exact quantity; teal is every predicted or unphysical one.
+Headings are set in KaTeX's Computer Modern, already loaded for the equations, so prose and
+mathematics share one voice and the page costs no external font request.
+
+### Two notes for anyone extending the surfaces
+
+Vertex displacement reads the height texture with an **explicit LOD** — the vertex stage
+has no screen-space derivatives, so an implicit sample is invalid. And the height texture is
+**half float, not float32**: WebGPU treats `r32float` as unfilterable unless the optional
+`float32-filterable` feature is present, so a `LinearFilter` sampler over one is invalid.
+
+Camera placement is load-bearing rather than taste. The bulk ridges run *away* from the
+viewer along $\log z$, so a high three-quarter view foreshortens them into a featureless
+plateau and the surface reads as flat even when fully displaced — which is exactly as
+convincing as a real bug, and cost an afternoon before the geometry was checked directly.
+Each panel sets its own camera.
 
 ### Running it
 

@@ -2,15 +2,15 @@ import { useEffect, useMemo, useState } from "react";
 import { Formula } from "./components/Formula";
 import { Panel, Readout } from "./components/Panel";
 import { TheoryControls } from "./components/TheoryControls";
-import { BulkDiagram } from "./panels/BulkDiagram";
-import { LogResidual } from "./panels/LogResidual";
+import { BulkSurface } from "./panels/BulkSurface";
+import { ResidualSurface } from "./panels/ResidualSurface";
 import {
   potentialMoment,
   potentialSamples,
   predictLocally,
   type Prediction,
 } from "./lib/prediction";
-import { RGInvariance } from "./panels/RGInvariance";
+import { RGSurface } from "./panels/RGSurface";
 import {
   cDeltaCft,
   defaultBackground,
@@ -106,80 +106,79 @@ export default function App() {
     operatorState.status === "ready" ? operatorState.operator.manifest.trained : false;
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      <header className="mb-6">
-        <h1 className="text-xl font-semibold text-slate-100">
-          QFT action → observable in Euclidean AdS₂
+    <div className="mx-auto max-w-[62rem] px-5 py-10">
+      <header className="mb-8">
+        <p className="eyebrow">Euclidean AdS₂ · holographic renormalization</p>
+        <h1 className="display mt-3 text-[2rem] leading-[1.15] text-[var(--bright)]">
+          An action goes in. A boundary correlator comes out.
         </h1>
-        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-400">
+        <p className="mt-4 max-w-[62ch] text-[0.9rem] leading-relaxed text-[var(--dim)]">
           A neural operator learning{" "}
           <Formula tex="V(\phi) \mapsto W(p_1,p_2)=\langle V_{\beta_1}(p_1)V_{\beta_2}(p_2)\rangle_{\rm conn}" />{" "}
-          in the Poincaré patch <Formula tex="ds^2=(L^2/z^2)(dz^2+dp^2)" />. Holographic
-          renormalization turns the near-boundary logarithms into an anomalous dimension,{" "}
-          <Formula tex="\Delta_{\rm eff}=\Delta\beta_1\beta_2-\gamma" />.
+          in the Poincaré patch <Formula tex="ds^2=(L^2/z^2)(dz^2+dp^2)" />. The metric
+          blows up at the boundary, bulk integrals diverge logarithmically there, and the
+          logarithms reorganize into an anomalous dimension{" "}
+          <Formula tex="\Delta_{\rm eff}=\Delta\beta_1\beta_2-\gamma" />. Each panel below
+          is that story as a surface: height is the quantity, and the shape is the argument.
         </p>
-        <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
-          <span
-            className={`rounded-full px-2 py-0.5 ${
-              backendOnline
-                ? "bg-sky-500/15 text-sky-300"
-                : backendStatus === "checking"
-                  ? "bg-slate-700/50 text-slate-400"
-                  : "bg-slate-700/50 text-slate-400"
-            }`}
-          >
+        <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[var(--rule)] pt-4">
+          <span className="eyebrow">
             {backendOnline
-              ? "backend online — live PyTorch inference"
+              ? "backend online · live pytorch inference"
               : backendStatus === "checking"
-                ? "probing backend…"
-                : "standalone — everything computed in the browser"}
+                ? "probing backend"
+                : "standalone · computed in the browser"}
           </span>
           {operatorState.status === "ready" && (
-            <span className={trained ? "text-slate-400" : "text-amber-400"}>
-              {trained
-                ? "operator: trained checkpoint"
-                : "operator: untrained weights — predictions sit on the free theory"}
+            <span className="eyebrow" style={{ color: trained ? undefined : "var(--sodium)" }}>
+              {trained ? "operator · trained checkpoint" : "operator · untrained weights"}
             </span>
           )}
           {operatorState.status === "unavailable" && (
-            <span className="text-amber-400">
-              no exported operator — exact physics only
+            <span className="eyebrow" style={{ color: "var(--sodium)" }}>
+              no exported operator · exact physics only
             </span>
           )}
         </div>
       </header>
 
-      <div className="grid gap-4">
+      <div className="grid gap-5">
         <Panel
           title="Theory"
           subtitle={
             <>
-              The anomalous dimension is a <em>functional</em> of the potential:{" "}
-              <Formula tex="\gamma[V]=\tfrac12\beta_1\beta_2\langle V''\rangle_\sigma C_{\log}" />,
-              which is why polynomial and Gaussian-process draws carry exact labels too.
+              The anomalous dimension is a <em>functional</em> of the potential,{" "}
+              <Formula tex="\gamma[V]=\tfrac12\beta_1\beta_2\langle V''\rangle_\sigma C_{\log}" />.
+              That is why a Gaussian-process draw with no analytic form carries a label as
+              exact as Sine-Gordon’s.
             </>
           }
         >
           <TheoryControls theory={theory} onChange={setTheory} />
-          <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <Readout label="Δ" value={background.delta.toFixed(4)} hint="Δ(Δ−1)=m²L²" />
+          <div className="mt-5 grid grid-cols-2 gap-5 sm:grid-cols-4">
+            <Readout label="Δ" value={background.delta.toFixed(4)} hint="Δ(Δ−)=m²L²" />
             <Readout label="c_Δ" value={background.cDelta.toFixed(5)} />
             <Readout label="C_log" value={logCoefficient(background).toFixed(5)} />
             <Readout label="Δβ₁β₂" value={freeDimension(background).toFixed(4)} />
           </div>
         </Panel>
 
-        <BulkDiagram background={background} backendOnline={backendOnline} />
-        <LogResidual theory={theory} background={background} prediction={prediction} />
-        <RGInvariance theory={theory} background={background} />
+        <BulkSurface background={background} />
+        <ResidualSurface
+          theory={theory}
+          background={background}
+          operator={operatorState.status === "ready" ? operatorState.operator : null}
+          prediction={prediction}
+        />
+        <RGSurface theory={theory} background={background} />
       </div>
 
-      <footer className="mt-8 text-xs leading-relaxed text-slate-500">
-        Exact curves are closed form and computed in the browser. The operator prediction
-        comes from the exported Fourier-DeepONet — the spectral layers keep their weights in
-        Fourier space and the 64-point transform runs client-side, since{" "}
-        <code className="text-slate-400">aten::fft_rfft</code> has no ONNX lowering. Parity
-        with PyTorch is pinned by tests on both sides.
+      <footer className="mt-10 border-t border-[var(--rule)] pt-5 text-[0.75rem] leading-relaxed text-[var(--dim)]">
+        Every amber surface is closed form, computed in the browser. Teal is predicted or
+        unphysical. The operator runs client-side from an exported Fourier-DeepONet: its
+        spectral layers keep their weights in Fourier space and the 64-point transform runs
+        here, since <code className="numeric">aten::fft_rfft</code> has no ONNX lowering.
+        Parity with PyTorch is pinned by tests on both sides.
       </footer>
     </div>
   );
